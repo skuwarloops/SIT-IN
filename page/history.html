@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico"/>
+  <title>CCS | Sit-in History</title>
+  <link rel="stylesheet" href="/css/landing.css"/>
+  <link rel="stylesheet" href="/css/dashboard.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    .history-wrap {
+      max-width: 960px;
+      margin: 36px auto;
+      padding: 0 24px 80px;
+    }
+    .history-title {
+      font-family: 'Fraunces', serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .history-sub {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+    .history-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .history-card-header {
+      background: linear-gradient(135deg, var(--navy-dark), var(--purple));
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .history-toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--card-border);
+      flex-wrap: wrap;
+    }
+    .history-search {
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      outline: none;
+      width: 220px;
+      transition: border-color 0.2s;
+    }
+    .history-search:focus { border-color: var(--purple); }
+    .history-filter {
+      padding: 8px 13px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      outline: none;
+    }
+    .history-filter option { background: #0d1e35; }
+    .history-count {
+      font-size: 13px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+    .history-table-wrap { overflow-x: auto; }
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .history-table th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--card-border);
+      white-space: nowrap;
+    }
+    .history-table td {
+      padding: 13px 16px;
+      border-bottom: 1px solid rgba(26,53,88,0.5);
+      color: var(--text);
+      vertical-align: middle;
+    }
+    .history-table tr:last-child td { border-bottom: none; }
+    .history-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .history-table .empty-row td {
+      text-align: center;
+      color: var(--muted);
+      padding: 40px;
+      font-size: 14px;
+    }
+    .badge-active { display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(34,197,94,0.12);color:#4ade80; }
+    .badge-done   { display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(100,116,139,0.12);color:#94a3b8; }
+    .summary-bar {
+      display: flex;
+      gap: 20px;
+      padding: 16px 20px;
+      border-top: 1px solid var(--card-border);
+      flex-wrap: wrap;
+    }
+    .summary-item { font-size: 13px; color: var(--muted); }
+    .summary-item strong { color: #fff; }
+
+    /* ── FEEDBACK BUTTON ── */
+    .btn-feedback {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-feedback:active { transform: scale(0.96); }
+    .btn-feedback.pending {
+      background: rgba(99,102,241,0.18);
+      color: #818cf8;
+      border: 1px solid rgba(99,102,241,0.3);
+    }
+    .btn-feedback.pending:hover { background: rgba(99,102,241,0.3); }
+    .btn-feedback.submitted {
+      background: rgba(34,197,94,0.1);
+      color: #4ade80;
+      border: 1px solid rgba(34,197,94,0.2);
+      cursor: default;
+    }
+
+    /* ── FEEDBACK MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #131c2e;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 28px 28px 24px;
+      width: 100%;
+      max-width: 440px;
+      animation: modalIn 0.25s ease;
+    }
+    @keyframes modalIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .modal-title {
+      font-family: 'Fraunces', serif;
+      font-size: 19px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .modal-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    /* ── STAR RATING ── */
+    .star-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 18px;
+      flex-direction: row-reverse;
+      justify-content: flex-end;
+    }
+    .star-row input { display: none; }
+    .star-row label {
+      font-size: 28px;
+      color: rgba(255,255,255,0.15);
+      cursor: pointer;
+      transition: color 0.15s, transform 0.1s;
+    }
+    .star-row label:hover,
+    .star-row label:hover ~ label,
+    .star-row input:checked ~ label {
+      color: #f59e0b;
+    }
+    .star-row label:hover { transform: scale(1.15); }
+
+    .modal-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .modal-textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      padding: 10px 14px;
+      resize: vertical;
+      min-height: 90px;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    .modal-textarea:focus { border-color: var(--purple); }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+    .btn-cancel {
+      padding: 9px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-cancel:hover { background: rgba(255,255,255,0.05); }
+    .btn-submit {
+      padding: 9px 22px;
+      border-radius: 8px;
+      border: none;
+      background: var(--purple);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-submit:hover { opacity: 0.85; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .modal-error {
+      font-size: 12px;
+      color: #f87171;
+      margin-top: 8px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── FEEDBACK MODAL ── -->
+  <div class="modal-overlay" id="feedback-modal">
+    <div class="modal-box">
+      <div class="modal-title">💬 Session Feedback</div>
+      <div class="modal-sub" id="modal-session-info">Loading session info...</div>
+
+      <div class="modal-label">How was your session?</div>
+      <div class="star-row" id="star-row">
+        <input type="radio" name="rating" id="s5" value="5"/><label for="s5">★</label>
+        <input type="radio" name="rating" id="s4" value="4"/><label for="s4">★</label>
+        <input type="radio" name="rating" id="s3" value="3"/><label for="s3">★</label>
+        <input type="radio" name="rating" id="s2" value="2"/><label for="s2">★</label>
+        <input type="radio" name="rating" id="s1" value="1"/><label for="s1">★</label>
+      </div>
+
+      <div class="modal-label">Comments (optional)</div>
+      <textarea class="modal-textarea" id="feedback-comment" placeholder="Share your experience..."></textarea>
+      <div class="modal-error" id="modal-error">Please select a star rating before submitting.</div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-submit" id="btn-submit-feedback" onclick="submitFeedback()">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img src="/images/uclogo.png" alt="UC Logo" class="nav-logo"/>
+      <img src="/images/ccsmainlogo.png" alt="CCS Logo" class="nav-logo"/>
+      <span class="nav-title">College of Computer Studies Sit-in Monitoring System</span>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/page/dashboard.html" class="nav-link">Home</a></li>
+      <li class="dropdown">
+        <a href="/page/community.html" class="nav-link dropdown-toggle" id="communityToggle">Community &#9660;</a>
+        <ul class="dropdown-menu" id="communityMenu">
+          <li><a href="/page/announcements.html">Announcements</a></li>
+          <li><a href="/page/resources.html">Resources</a></li>
+          <li><a href="/page/forums.html">Forums</a></li>
+        </ul>
+      </li>
+      <li><a href="/page/history.html" class="nav-link active">History</a></li>
+      <li><a href="/page/reservation.html" class="nav-link">Reservation</a></li>
+      <li class="dropdown" id="user-dropdown-li">
+        <a href="#" class="nav-link dropdown-toggle" id="userDropdownToggle" style="display:flex;align-items:center;gap:8px;">
+          <div class="nav-user-avatar" id="nav-avatar">?</div>
+          <span id="nav-username">Loading...</span>
+        </a>
+        <ul class="dropdown-menu" id="userDropdownMenu" style="right:0;left:auto;min-width:180px;">
+          <li><a href="/page/edit-profile.html">✏️ Edit Profile</a></li>
+        </ul>
+      </li>
+      <li><button class="logout-btn" id="logout-btn">Logout</button></li>
+    </ul>
+  </nav>
+
+  <div class="history-wrap">
+    <div class="history-title">📋 Sit-in History</div>
+    <p class="history-sub">A record of all your sit-in sessions in the CCS laboratories.</p>
+
+    <div class="history-card">
+      <div class="history-card-header">
+        <span>Session Records</span>
+        <span id="remaining-badge" style="font-size:13px;opacity:0.85;">Remaining Sessions: —</span>
+      </div>
+      <div class="history-toolbar">
+        <input class="history-search" type="text" placeholder="🔍 Search..." id="histSearch"/>
+        <select class="history-filter" id="histFilter">
+          <option value="all">All Status</option>
+          <option value="Active">Active</option>
+          <option value="Done">Done</option>
+        </select>
+        <span class="history-count" id="hist-count">Loading...</span>
+      </div>
+      <div class="history-table-wrap">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Purpose</th>
+              <th>Laboratory</th>
+              <th>Session No.</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Feedback</th>
+            </tr>
+          </thead>
+          <tbody id="hist-tbody">
+            <tr class="empty-row"><td colspan="7">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="summary-bar" id="summary-bar" style="display:none;">
+        <div class="summary-item">Total Sessions: <strong id="sum-total">0</strong></div>
+        <div class="summary-item">Completed: <strong id="sum-done">0</strong></div>
+        <div class="summary-item">Active: <strong id="sum-active">0</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-logos">
+      <img src="/images/uclogo.png" alt="UC" class="footer-logo"/>
+      <img src="/images/ccsmainlogo.png" alt="CCS" class="footer-logo"/>
+    </div>
+    <p>&copy; 2026 University of Cebu &mdash; College of Computer Studies. All rights reserved.</p>
+  </footer>
+
+  <script src="/js/landing.js"></script>
+  <script>
+    const API = 'http://127.0.0.1:5000/api';
+
+    // Auth check
+    const stored = localStorage.getItem('ccs_user');
+    if (!stored) { window.location.href = '/login-register/index.html'; }
+    const user = JSON.parse(stored);
+
+    // Populate navbar
+    document.getElementById('nav-username').textContent = user.firstname || user.fullname.split(',')[0].trim();
+    document.getElementById('nav-avatar').textContent   = (user.lastname || user.fullname).charAt(0).toUpperCase();
+    document.getElementById('remaining-badge').textContent = `Remaining Sessions: ${user.remaining_session ?? '—'}`;
+
+    let allHistory = [];
+    let currentSitinId = null;
+
+    // ── LOAD HISTORY ───────────────────────────────────
+    async function loadHistory() {
+      try {
+        const res  = await fetch(`${API}/history/${user.id}`, { credentials: 'include' });
+        const data = await res.json();
+        allHistory = data.history || [];
+        applyFilters();
+
+        const done   = allHistory.filter(h => h.status === 'Done').length;
+        const active = allHistory.filter(h => h.status === 'Active').length;
+        document.getElementById('sum-total').textContent  = allHistory.length;
+        document.getElementById('sum-done').textContent   = done;
+        document.getElementById('sum-active').textContent = active;
+        if (allHistory.length > 0) document.getElementById('summary-bar').style.display = 'flex';
+      } catch {
+        document.getElementById('hist-tbody').innerHTML =
+          '<tr class="empty-row"><td colspan="7">Could not load history. Make sure the server is running.</td></tr>';
+      }
+    }
+
+    function applyFilters() {
+      const q      = document.getElementById('histSearch').value.toLowerCase();
+      const status = document.getElementById('histFilter').value;
+      const filtered = allHistory.filter(h => {
+        const matchStatus = status === 'all' || h.status === status;
+        const matchSearch = (h.purpose || '').toLowerCase().includes(q) ||
+                            (h.lab     || '').toLowerCase().includes(q);
+        return matchStatus && matchSearch;
+      });
+      renderTable(filtered);
+    }
+
+    function renderTable(rows) {
+      document.getElementById('hist-count').textContent = `${rows.length} record(s)`;
+      const tbody = document.getElementById('hist-tbody');
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No sit-in records found.</td></tr>';
+        return;
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      tbody.innerHTML = rows.map((h, i) => {
+        const sessionDate = new Date(h.created);
+        sessionDate.setHours(0, 0, 0, 0);
+        const isPast   = sessionDate <= today;
+        const isDone   = h.status === 'Done';
+        const canFeedback = isDone && isPast;
+
+        let feedbackCell = '—';
+        if (h.status === 'Active') {
+          feedbackCell = '<span style="color:var(--muted);font-size:12px;">Session ongoing</span>';
+        } else if (!isPast) {
+          feedbackCell = '<span style="color:var(--muted);font-size:12px;">Available tomorrow</span>';
+        } else if (h.feedback_submitted) {
+          feedbackCell = '<button class="btn-feedback submitted" disabled>✓ Submitted</button>';
+        } else {
+          feedbackCell = `<button class="btn-feedback pending" onclick="openModal(${h.id}, '${(h.purpose||'').replace(/'/g,"\\'")}', '${(h.lab||'').replace(/'/g,"\\'")}', '${formatDate(h.created)}')">💬 Give Feedback</button>`;
+        }
+
+        return `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${h.purpose || '—'}</td>
+            <td>${h.lab    || '—'}</td>
+            <td>${h.session || '—'}</td>
+            <td>${h.status === 'Active'
+              ? '<span class="badge-active">Active</span>'
+              : '<span class="badge-done">Done</span>'}</td>
+            <td>${formatDate(h.created)}</td>
+            <td>${feedbackCell}</td>
+          </tr>`;
+      }).join('');
+    }
+
+    function formatDate(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('en-PH', { year:'numeric', month:'short', day:'numeric' });
+    }
+
+    document.getElementById('histSearch').addEventListener('input', applyFilters);
+    document.getElementById('histFilter').addEventListener('change', applyFilters);
+
+    // ── FEEDBACK MODAL ─────────────────────────────────
+    function openModal(sitinId, purpose, lab, date) {
+      currentSitinId = sitinId;
+      document.getElementById('modal-session-info').textContent = `${purpose} — ${lab} on ${date}`;
+      document.getElementById('feedback-comment').value = '';
+      document.getElementById('modal-error').style.display = 'none';
+      document.querySelectorAll('input[name="rating"]').forEach(r => r.checked = false);
+      document.getElementById('feedback-modal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('feedback-modal').classList.remove('open');
+      currentSitinId = null;
+    }
+
+    // Close modal when clicking outside the box
+    document.getElementById('feedback-modal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('feedback-modal')) closeModal();
+    });
+
+    async function submitFeedback() {
+      const rating  = document.querySelector('input[name="rating"]:checked');
+      const comment = document.getElementById('feedback-comment').value.trim();
+      const errEl   = document.getElementById('modal-error');
+      const btn     = document.getElementById('btn-submit-feedback');
+
+      if (!rating) {
+        errEl.style.display = 'block';
+        return;
+      }
+      errEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+
+      try {
+        const res  = await fetch(`${API}/feedback`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sitin_id: currentSitinId,
+            user_id:  user.id,
+            rating:   parseInt(rating.value),
+            comment:  comment
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          // Mark session as feedback submitted locally so button updates instantly
+          const h = allHistory.find(x => x.id === currentSitinId);
+          if (h) h.feedback_submitted = true;
+          closeModal();
+          applyFilters();
+        } else {
+          errEl.textContent = data.message || 'Failed to submit feedback.';
+          errEl.style.display = 'block';
+        }
+      } catch {
+        errEl.textContent = 'Server error. Please try again.';
+        errEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit';
+      }
+    }
+
+    // ── LOGOUT ─────────────────────────────────────────
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      try { await fetch(API + '/logout', { method: 'POST', credentials: 'include' }); } catch {}
+      localStorage.removeItem('ccs_user');
+      window.location.href = '/login-register/index.html';
+    });
+
+    // User dropdown toggle
+    const userDropdownToggle = document.getElementById('userDropdownToggle');
+    const userDropdownMenu   = document.getElementById('userDropdownMenu');
+    if (userDropdownToggle && userDropdownMenu) {
+      userDropdownToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        userDropdownMenu.classList.toggle('open');
+      });
+      document.addEventListener('click', (e) => {
+        if (!userDropdownToggle.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+          userDropdownMenu.classList.remove('open');
+        }
+      });
+    }
+
+    loadHistory();
+  </script>
+</body>
+</html>

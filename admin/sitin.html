@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS Admin | Sit-in</title>
+  <link rel="stylesheet" href="../css/admin.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav class="admin-navbar">
+    <div class="admin-nav-brand">
+      <img src="../images/uclogo.png" alt="UC"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS"/>
+      College of Computer Studies Admin
+    </div>
+    <ul class="admin-nav-links">
+      <li><a href="home.html">Home</a></li>
+      <li><a href="search.html">Search</a></li>
+      <li><a href="students.html">Students</a></li>
+      <li><a href="sitin.html" class="active">Sit-in</a></li>
+      <li><a href="sitin-records.html">View Sit-in Records</a></li>
+      <li><a href="feedback.html" class="active">Feedback</a></li>
+      <li><a href="/admin/reservations.html" class="active">Reservations</a></li>
+    </ul>
+    <button class="admin-logout-btn" onclick="adminLogout()">Log out</button>
+  </nav>
+
+  <div class="admin-main">
+    <div class="admin-page-title">Sit-in Management</div>
+
+    <!-- SIT-IN FORM -->
+    <div class="admin-panel" style="margin-bottom:24px;">
+      <div class="admin-panel-header">
+        <h3>📋 New Sit-in Session</h3>
+        <button class="btn-primary" onclick="openModal('sitinModal')">+ Sit In</button>
+      </div>
+      <div class="admin-panel-body">
+        <p style="font-size:13px;color:var(--muted);">Click <strong style="color:#fff;">+ Sit In</strong> to open the sit-in form and register a student session.</p>
+      </div>
+    </div>
+
+    <!-- CURRENT SIT-IN TABLE -->
+    <div class="admin-panel">
+      <div class="admin-panel-header">
+        <h3>🖥️ Current Sit-in</h3>
+        <button class="btn-outline-danger" onclick="loadSitin()" style="font-size:12px;padding:6px 14px;">↻ Refresh</button>
+      </div>
+      <div class="admin-panel-body">
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Sit ID</th>
+                <th>ID Number</th>
+                <th>Name</th>
+                <th>Purpose</th>
+                <th>Lab</th>
+                <th>Session</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sitin-tbody">
+              <tr class="empty-row"><td colspan="8">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIT-IN MODAL -->
+  <div class="modal-overlay hidden" id="sitinModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Sit In Form</h3>
+        <button class="modal-close" onclick="closeModal('sitinModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="sitin-lookup-result" style="display:none;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:12px;margin-bottom:4px;">
+          <div style="font-size:13px;color:#4ade80;font-weight:600;" id="sitin-student-name">—</div>
+          <div style="font-size:12px;color:var(--muted);" id="sitin-student-info">—</div>
+        </div>
+        <div class="form-field">
+          <label>ID Number</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="sitin-id" placeholder="e.g. 2024-0001" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--card-border);border-radius:8px;padding:10px 13px;color:var(--text);font-family:inherit;font-size:14px;outline:none;"/>
+            <button class="btn-primary" onclick="lookupStudent()">Look Up</button>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Purpose</label>
+          <select id="sitin-purpose">
+            <option value="">— Select Purpose —</option>
+            <option value="C Programming">C Programming</option>
+            <option value="Java">Java</option>
+            <option value="Python">Python</option>
+            <option value="PHP">PHP</option>
+            <option value="ASP.Net">ASP.Net</option>
+            <option value="C#">C#</option>
+            <option value="Research">Research</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Lab</label>
+          <select id="sitin-lab">
+            <option value="">— Select Lab —</option>
+            <option value="Lab 528">Lab 528</option>
+            <option value="Lab 530">Lab 530</option>
+            <option value="Lab 540">Lab 540</option>
+            <option value="Lab 524">Lab 524</option>
+            <option value="Lab 526">Lab 526</option>
+          </select>
+        </div>
+        <div id="sitin-err" style="color:#f87171;font-size:13px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="submitSitin()">Sit In</button>
+        <button class="btn-outline-danger" onclick="closeModal('sitinModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>
+    requireAdmin();
+    let lookedUpStudent = null;
+
+    async function loadSitin() {
+      try {
+        const res  = await fetch(API + '/admin/sitin', { credentials: 'include' });
+        const data = await res.json();
+        const rows = (data.records || []).filter(r => r.status === 'Active');
+        const tbody = document.getElementById('sitin-tbody');
+        if (rows.length === 0) {
+          tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No active sit-in sessions.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = rows.map(r => `
+          <tr>
+            <td>${r.id}</td>
+            <td>${r.id_number || '—'}</td>
+            <td>${r.fullname}</td>
+            <td>${r.purpose}</td>
+            <td>${r.lab}</td>
+            <td>${r.session}</td>
+            <td><span class="badge-active">Active</span></td>
+            <td style="display:flex;gap:6px;">
+              <button class="btn-success" onclick="endSitin(${r.id})">End</button>
+              <button class="btn-danger" onclick="deleteSitin(${r.id})">Delete</button>
+            </td>
+          </tr>`).join('');
+      } catch { showToast('Cannot load sit-in records.', 'error'); }
+    }
+
+    async function lookupStudent() {
+      const idNum = document.getElementById('sitin-id').value.trim();
+      if (!idNum) { showToast('Enter a student ID.', 'error'); return; }
+      try {
+        const res  = await fetch(API + '/admin/students/search?q=' + encodeURIComponent(idNum), { credentials: 'include' });
+        const data = await res.json();
+        const match = (data.students || []).find(s => s.id_number === idNum);
+        if (!match) {
+          document.getElementById('sitin-err').textContent = 'Student ID not found.';
+          document.getElementById('sitin-lookup-result').style.display = 'none';
+          lookedUpStudent = null;
+          return;
+        }
+        lookedUpStudent = match;
+        document.getElementById('sitin-err').textContent = '';
+        document.getElementById('sitin-student-name').textContent = match.fullname;
+        document.getElementById('sitin-student-info').textContent =
+          `${match.course} — Year ${match.level} | Remaining Sessions: ${match.remaining_session}`;
+        document.getElementById('sitin-lookup-result').style.display = 'block';
+      } catch { showToast('Server error.', 'error'); }
+    }
+
+    async function submitSitin() {
+      const idNum   = document.getElementById('sitin-id').value.trim();
+      const purpose = document.getElementById('sitin-purpose').value;
+      const lab     = document.getElementById('sitin-lab').value;
+      document.getElementById('sitin-err').textContent = '';
+
+      if (!idNum)   { document.getElementById('sitin-err').textContent = 'Please enter a student ID.'; return; }
+      if (!purpose) { document.getElementById('sitin-err').textContent = 'Please select a purpose.'; return; }
+      if (!lab)     { document.getElementById('sitin-err').textContent = 'Please select a lab.'; return; }
+
+      try {
+        const res  = await fetch(API + '/admin/sitin', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ id_number: idNum, purpose, lab })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message);
+          closeModal('sitinModal');
+          document.getElementById('sitin-id').value = '';
+          document.getElementById('sitin-purpose').value = '';
+          document.getElementById('sitin-lab').value = '';
+          document.getElementById('sitin-lookup-result').style.display = 'none';
+          lookedUpStudent = null;
+          loadSitin();
+        } else {
+          document.getElementById('sitin-err').textContent = data.message;
+        }
+      } catch { showToast('Server error.', 'error'); }
+    }
+
+    async function endSitin(id) {
+      await fetch(API + '/admin/sitin/' + id + '/end', { method: 'POST', credentials: 'include' });
+      showToast('Sit-in session ended.');
+      loadSitin();
+    }
+
+    async function deleteSitin(id) {
+      if (!confirm('Delete this sit-in record?')) return;
+      await fetch(API + '/admin/sitin/' + id, { method: 'DELETE', credentials: 'include' });
+      showToast('Record deleted.');
+      loadSitin();
+    }
+
+    loadSitin();
+  </script>
+</body>
+</html>

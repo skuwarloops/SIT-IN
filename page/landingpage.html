@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS | Home</title>
+  <link rel="stylesheet" href="../css/landing.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img src="../images/uclogo.png" alt="UC Logo" class="nav-logo"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS Logo" class="nav-logo"/>
+      <span class="nav-title">College of Computer Studies Sit-in Monitoring System</span>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="landingpage.html" class="nav-link active">Home</a></li>
+      <li><a href="/page/dashboard.html" class="nav-link active">Dashboard</a></li>
+      <li class="dropdown">
+        <a href="community.html" class="nav-link dropdown-toggle" id="communityToggle">Community ▾</a>
+        <ul class="dropdown-menu" id="communityMenu">
+          <li><a href="announcements.html">Announcements</a></li>
+          <li><a href="resources.html">Resources</a></li>
+          <li><a href="forums.html">Forums</a></li>
+        </ul>
+      </li>
+      <li><a href="#about" class="nav-link">About</a></li>
+      <!-- Dynamically replaced by JS below -->
+      <li id="nav-auth-guest">
+        <a href="/login-register/index.html" class="nav-link">Login</a>
+      </li>
+      <li id="nav-auth-guest2">
+        <a href="/login-register/index.html" class="nav-btn">Register</a>
+      </li>
+      <li id="nav-auth-user" style="display:none;">
+        <div class="nav-user">
+          <div class="nav-user-avatar" id="nav-avatar">?</div>
+          <span id="nav-username"></span>
+        </div>
+      </li>
+      <li id="nav-auth-logout" style="display:none;">
+        <button class="logout-btn" id="logout-btn">Logout</button>
+      </li>
+    </ul>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <div class="hero-badge">🖥️ University of Cebu — CCS</div>
+      <h1 class="hero-title">Sit-in Monitoring<br/><span class="gold">System</span></h1>
+      <p class="hero-sub">A streamlined platform for managing and monitoring student sit-in sessions at the College of Computer Studies computer laboratories.</p>
+      <div class="hero-actions">
+        <a href="../login-register/index.html" class="btn-primary">Get Started</a>
+        <a href="#about" class="btn-outline">Learn More</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-num">5</span><span class="stat-label">Labs</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-num">200+</span><span class="stat-label">Students</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-num">24/7</span><span class="stat-label">Monitoring</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="visual-card">
+        <div class="vc-header">
+          <span class="vc-dot red"></span><span class="vc-dot yellow"></span><span class="vc-dot green"></span>
+          <span class="vc-title">Lab Session Monitor</span>
+        </div>
+        <div class="vc-body">
+          <div class="vc-row active"><span class="vc-status"></span><span>Sit-in #0041</span><span class="vc-tag">Active</span></div>
+          <div class="vc-row"><span class="vc-status idle"></span><span>Sit-in #0040</span><span class="vc-tag done">Done</span></div>
+          <div class="vc-row"><span class="vc-status idle"></span><span>Sit-in #0039</span><span class="vc-tag done">Done</span></div>
+          <div class="vc-row active"><span class="vc-status"></span><span>Sit-in #0038</span><span class="vc-tag">Active</span></div>
+          <div class="vc-row"><span class="vc-status idle"></span><span>Sit-in #0037</span><span class="vc-tag done">Done</span></div>
+        </div>
+        <div class="vc-footer">
+          <span>5 sessions today</span><span class="vc-live">● LIVE</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="about">
+    <div class="features-inner">
+      <div class="section-label">What We Offer</div>
+      <h2 class="section-title">Everything you need to manage <span class="gold">sit-in sessions</span></h2>
+      <div class="cards">
+        <div class="feature-card">
+          <div class="fc-icon">📋</div>
+          <h3>Session Logging</h3>
+          <p>Record and track all student sit-in sessions with timestamps, lab assignments, and purpose logs.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon">📊</div>
+          <h3>Reports & Analytics</h3>
+          <p>Generate detailed usage reports per student, per lab, and per time period for faculty review.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon">🔔</div>
+          <h3>Announcements</h3>
+          <p>Stay updated with the latest CCS announcements, lab schedules, and important reminders.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon">🔐</div>
+          <h3>Secure Access</h3>
+          <p>Role-based access for students and administrators ensures data privacy and system integrity.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-logos">
+      <img src="../images/uclogo.png" alt="UC" class="footer-logo"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS" class="footer-logo"/>
+    </div>
+    <p>© 2026 University of Cebu — College of Computer Studies. All rights reserved.</p>
+  </footer>
+
+  <script src="/js/landing.js"></script>
+  <script>
+    // ── SESSION-AWARE NAVBAR ───────────────────────────
+    const storedUser  = localStorage.getItem('ccs_user');
+    const storedAdmin = localStorage.getItem('ccs_admin');
+
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      // Hide guest links, show user info
+      document.getElementById('nav-auth-guest').style.display  = 'none';
+      document.getElementById('nav-auth-guest2').style.display = 'none';
+      document.getElementById('nav-auth-user').style.display   = 'list-item';
+      document.getElementById('nav-auth-logout').style.display = 'list-item';
+      document.getElementById('nav-username').textContent = user.firstname || user.fullname.split(',')[0];
+      document.getElementById('nav-avatar').textContent   = (user.lastname || user.fullname).charAt(0).toUpperCase();
+
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        try { await fetch('http://127.0.0.1:5000/api/logout', { method: 'POST', credentials: 'include' }); } catch {}
+        localStorage.removeItem('ccs_user');
+        window.location.href = '/login-register/index.html';
+      });
+    } else if (storedAdmin) {
+      // Admin is browsing landing — show admin name + logout
+      const admin = JSON.parse(storedAdmin);
+      document.getElementById('nav-auth-guest').style.display  = 'none';
+      document.getElementById('nav-auth-guest2').style.display = 'none';
+      document.getElementById('nav-auth-user').style.display   = 'list-item';
+      document.getElementById('nav-auth-logout').style.display = 'list-item';
+      document.getElementById('nav-username').textContent = admin.username;
+      document.getElementById('nav-avatar').textContent   = admin.username.charAt(0).toUpperCase();
+
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        try { await fetch('http://127.0.0.1:5000/api/admin/logout', { method: 'POST', credentials: 'include' }); } catch {}
+        localStorage.removeItem('ccs_admin');
+        window.location.href = '/login-register/index.html';
+      });
+    }
+  </script>
+</body>
+</html>

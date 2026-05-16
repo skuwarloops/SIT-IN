@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="icon" type="image/x-icon" href="/images/favicon.ico"/>
+  <title>CCS Admin | Reservations</title>
+  <link rel="stylesheet" href="/css/admin.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav class="admin-navbar">
+    <div class="admin-nav-brand">
+      <img src="/images/uclogo.png" alt="UC"/>
+      <img src="/images/ccsmainlogo.png" alt="CCS"/>
+      College of Computer Studies Admin
+    </div>
+    <ul class="admin-nav-links">
+      <li><a href="/admin/home.html">Home</a></li>
+      <li><a href="/admin/search.html">Search</a></li>
+      <li><a href="/admin/students.html">Students</a></li>
+      <li><a href="/admin/sitin.html">Sit-in</a></li>
+      <li><a href="/admin/sitin-records.html">View Sit-in Records</a></li>
+      <li><a href="feedback.html" class="active">Feedback</a></li>
+      <li><a href="/admin/reservations.html" class="active">Reservations</a></li>
+    </ul>
+    <button class="admin-logout-btn" onclick="adminLogout()">Log out</button>
+  </nav>
+
+  <div class="admin-main">
+    <div class="admin-page-title">Reservations</div>
+
+    <div class="admin-panel">
+      <div class="admin-panel-header">
+        <h3>📅 Student Reservations</h3>
+        <button class="btn-outline-danger" onclick="loadReservations()" style="font-size:12px;padding:6px 14px;">↻ Refresh</button>
+      </div>
+      <div class="admin-panel-body">
+        <div class="table-toolbar">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="filter-btn active" data-filter="all"     onclick="setFilter('all',this)">All</button>
+            <button class="filter-btn"        data-filter="Pending"  onclick="setFilter('Pending',this)">Pending</button>
+            <button class="filter-btn"        data-filter="Approved" onclick="setFilter('Approved',this)">Approved</button>
+            <button class="filter-btn"        data-filter="Rejected" onclick="setFilter('Rejected',this)">Rejected</button>
+            <button class="filter-btn"        data-filter="Cancelled" onclick="setFilter('Cancelled',this)">Cancelled</button>
+          </div>
+          <input class="table-search" type="text" placeholder="🔍 Search..." id="tableSearch"/>
+        </div>
+        <div id="row-count" style="font-size:13px;color:var(--muted);margin-bottom:12px;">Loading...</div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Student</th>
+                <th>ID Number</th>
+                <th>Purpose</th>
+                <th>Lab</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="res-tbody">
+              <tr class="empty-row"><td colspan="9">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .filter-btn {
+      padding: 6px 14px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: linear-gradient(135deg, var(--navy-dark), var(--purple));
+      border-color: transparent;
+      color: #fff;
+    }
+    .badge-pending   { display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(234,179,8,0.12);color:#facc15; }
+    .badge-approved  { display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(34,197,94,0.12);color:#4ade80; }
+    .badge-rejected  { display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(239,68,68,0.12);color:#f87171; }
+    .badge-cancelled { display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(100,116,139,0.12);color:#94a3b8; }
+  </style>
+
+  <script src="/js/admin.js"></script>
+  <script>
+    requireAdmin();
+
+    let allReservations = [];
+    let currentFilter = 'all';
+
+    async function loadReservations() {
+      try {
+        const res  = await fetch(API + '/admin/reservations', { credentials: 'include' });
+        const data = await res.json();
+        allReservations = data.reservations || [];
+        applyFilters();
+      } catch { showToast('Cannot load reservations.', 'error'); }
+    }
+
+    function setFilter(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const q = document.getElementById('tableSearch').value.toLowerCase();
+      const filtered = allReservations.filter(r => {
+        const matchFilter = currentFilter === 'all' || r.status === currentFilter;
+        const matchSearch = (r.fullname   || '').toLowerCase().includes(q) ||
+                            (r.id_number  || '').toLowerCase().includes(q) ||
+                            (r.purpose    || '').toLowerCase().includes(q) ||
+                            (r.lab        || '').toLowerCase().includes(q);
+        return matchFilter && matchSearch;
+      });
+      renderTable(filtered);
+    }
+
+    function renderTable(rows) {
+      document.getElementById('row-count').textContent = `${rows.length} reservation(s)`;
+      const tbody = document.getElementById('res-tbody');
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="9">No reservations found.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td>${r.id}</td>
+          <td>${r.fullname}</td>
+          <td>${r.id_number || '—'}</td>
+          <td>${r.purpose}</td>
+          <td>${r.lab}</td>
+          <td>${formatDate(r.date)}</td>
+          <td>${r.time_start} – ${r.time_end}</td>
+          <td>${statusBadge(r.status)}</td>
+          <td>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              ${r.status === 'Pending' ? `
+                <button class="btn-success" onclick="approve(${r.id})">Approve</button>
+                <button class="btn-danger"  onclick="reject(${r.id})">Reject</button>
+              ` : ''}
+              <button class="btn-danger" style="background:rgba(100,116,139,0.1);color:#94a3b8;border-color:rgba(100,116,139,0.2);" onclick="deleteRes(${r.id})">Delete</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    }
+
+    function statusBadge(s) {
+      const map = {
+        Pending:   'badge-pending',
+        Approved:  'badge-approved',
+        Rejected:  'badge-rejected',
+        Cancelled: 'badge-cancelled'
+      };
+      return `<span class="${map[s] || ''}">${s}</span>`;
+    }
+
+    function formatDate(d) {
+      if (!d) return '—';
+      return new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { month:'short', day:'numeric', year:'numeric' });
+    }
+
+    document.getElementById('tableSearch').addEventListener('input', applyFilters);
+
+    async function approve(id) {
+      const res  = await fetch(API + '/admin/reservations/' + id + '/approve', { method:'POST', credentials:'include' });
+      const data = await res.json();
+      showToast(data.message, data.sitin_created ? 'success' : 'success');
+      if (data.sitin_created) {
+        showToast('✅ Sit-in session started automatically!', 'success');
+      }
+      loadReservations();
+    }
+
+    async function reject(id) {
+      if (!confirm('Reject this reservation?')) return;
+      const res  = await fetch(API + '/admin/reservations/' + id + '/reject', { method:'POST', credentials:'include' });
+      const data = await res.json();
+      showToast(data.message);
+      loadReservations();
+    }
+
+    async function deleteRes(id) {
+      if (!confirm('Delete this reservation permanently?')) return;
+      await fetch(API + '/admin/reservations/' + id, { method:'DELETE', credentials:'include' });
+      showToast('Reservation deleted.');
+      loadReservations();
+    }
+
+    loadReservations();
+  </script>
+</body>
+</html>

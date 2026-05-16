@@ -1,0 +1,295 @@
+/* Dark Mode CSS Variables and Styles */
+
+:root {
+  --primary-color: #2c3e50;
+  --secondary-color: #34495e;
+  --accent-color: #3498db;
+  --danger-color: #e74c3c;
+  --success-color: #27ae60;
+  --warning-color: #f39c12;
+  --text-color: #2c3e50;
+  --text-light: #7f8c8d;
+  --bg-color: #ffffff;
+  --bg-secondary: #ecf0f1;
+  --border-color: #bdc3c7;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Mode */
+body.dark-mode {
+  --primary-color: #ecf0f1;
+  --secondary-color: #bdc3c7;
+  --accent-color: #3498db;
+  --text-color: #ecf0f1;
+  --text-light: #95a5a6;
+  --bg-color: #2c3e50;
+  --bg-secondary: #34495e;
+  --border-color: #7f8c8d;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode {
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
+}
+
+body.dark-mode .navbar {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-color) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+body.dark-mode .nav-link {
+  color: var(--text-color) !important;
+}
+
+body.dark-mode .nav-link:hover {
+  color: var(--accent-color) !important;
+}
+
+body.dark-mode .nav-btn {
+  background-color: var(--accent-color) !important;
+  color: white !important;
+}
+
+body.dark-mode .card,
+body.dark-mode .feature-card,
+body.dark-mode .stat-card {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+body.dark-mode .btn-primary {
+  background-color: var(--accent-color) !important;
+  color: white !important;
+  border: none !important;
+}
+
+body.dark-mode .btn-primary:hover {
+  background-color: #2980b9 !important;
+}
+
+body.dark-mode .btn-outline {
+  border: 1px solid var(--accent-color) !important;
+  color: var(--accent-color) !important;
+  background-color: transparent !important;
+}
+
+body.dark-mode .btn-outline:hover {
+  background-color: var(--accent-color) !important;
+  color: white !important;
+}
+
+body.dark-mode .form-control,
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+body.dark-mode .form-control:focus,
+body.dark-mode input:focus,
+body.dark-mode textarea:focus,
+body.dark-mode select:focus {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-color) !important;
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25) !important;
+}
+
+body.dark-mode table {
+  color: var(--text-color) !important;
+  background-color: var(--bg-secondary) !important;
+}
+
+body.dark-mode th {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+body.dark-mode tr:hover {
+  background-color: rgba(52, 152, 219, 0.1) !important;
+}
+
+body.dark-mode .hero {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-color) 100%) !important;
+}
+
+body.dark-mode .footer {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-color) !important;
+  border-top: 1px solid var(--border-color) !important;
+}
+
+body.dark-mode .alert {
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-color) !important;
+}
+
+body.dark-mode .alert-info {
+  background-color: rgba(52, 152, 219, 0.2) !important;
+  border-color: var(--accent-color) !important;
+  color: #3498db !important;
+}
+
+body.dark-mode .alert-danger {
+  background-color: rgba(231, 76, 60, 0.2) !important;
+  border-color: var(--danger-color) !important;
+  color: #e74c3c !important;
+}
+
+body.dark-mode .alert-success {
+  background-color: rgba(39, 174, 96, 0.2) !important;
+  border-color: var(--success-color) !important;
+  color: #27ae60 !important;
+}
+
+/* Dark Mode Toggle Button */
+.dark-mode-toggle {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 5px 10px;
+  transition: all 0.3s ease;
+  margin: 0 10px;
+}
+
+.dark-mode-toggle:hover {
+  transform: scale(1.1);
+}
+
+/* Smooth transitions for dark mode */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Code blocks in dark mode */
+body.dark-mode code,
+body.dark-mode pre {
+  background-color: var(--primary-color) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* Charts/graphs */
+body.dark-mode canvas {
+  filter: invert(0.93) hue-rotate(180deg);
+}
+
+/* Modals */
+body.dark-mode .modal {
+  background-color: var(--bg-color) !important;
+}
+
+body.dark-mode .modal-content {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+body.dark-mode .modal-header {
+  border-bottom: 1px solid var(--border-color) !important;
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+body.dark-mode .modal-footer {
+  border-top: 1px solid var(--border-color) !important;
+}
+
+/* Dropdowns */
+body.dark-mode .dropdown-menu {
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+body.dark-mode .dropdown-item {
+  color: var(--text-color) !important;
+}
+
+body.dark-mode .dropdown-item:hover {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+/* Loading spinners */
+body.dark-mode .spinner-border {
+  border-color: rgba(236, 240, 241, 0.25) !important;
+  border-right-color: #3498db !important;
+}
+
+/* Links */
+body.dark-mode a {
+  color: var(--accent-color) !important;
+}
+
+body.dark-mode a:hover {
+  color: #2980b9 !important;
+}
+
+/* Statistics cards */
+.stat-card {
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  margin: 10px 0;
+}
+
+.stat-card .stat-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
+.stat-card .stat-label {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-top: 5px;
+}
+
+/* Sidebar */
+body.dark-mode .sidebar {
+  background-color: var(--bg-secondary) !important;
+  border-right: 1px solid var(--border-color) !important;
+}
+
+body.dark-mode .sidebar .nav-link.active {
+  background-color: var(--accent-color) !important;
+  color: white !important;
+}
+
+/* Sessions table styling */
+.sessions-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+.sessions-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.sessions-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sessions-table tr:hover {
+  background-color: var(--bg-secondary);
+}
+
+body.dark-mode .sessions-table th {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+body.dark-mode .sessions-table td {
+  border-bottom-color: var(--border-color);
+}

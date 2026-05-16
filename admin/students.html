@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS Admin | Students</title>
+  <link rel="stylesheet" href="../css/admin.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav class="admin-navbar">
+    <div class="admin-nav-brand">
+      <img src="../images/uclogo.png" alt="UC"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS"/>
+      College of Computer Studies Admin
+    </div>
+    <ul class="admin-nav-links">
+      <li><a href="home.html">Home</a></li>
+      <li><a href="search.html">Search</a></li>
+      <li><a href="students.html" class="active">Students</a></li>
+      <li><a href="sitin.html">Sit-in</a></li>
+      <li><a href="sitin-records.html">View Sit-in Records</a></li>
+      <li><a href="feedback.html" class="active">Feedback</a></li>
+      <li><a href="/admin/reservations.html" class="active">Reservations</a></li>
+    </ul>
+    <button class="admin-logout-btn" onclick="adminLogout()">Log out</button>
+  </nav>
+
+  <div class="admin-main">
+    <div class="admin-page-title">Students Information</div>
+
+    <div class="admin-panel">
+      <div class="admin-panel-header">
+        <h3>👥 Student List</h3>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-primary" onclick="openModal('addModal')">+ Add Student</button>
+          <button class="btn-outline-danger" onclick="resetAllSessions()">Reset All Sessions</button>
+        </div>
+      </div>
+      <div class="admin-panel-body">
+        <div class="table-toolbar">
+          <div style="font-size:13px;color:var(--muted);" id="row-count">Loading...</div>
+          <input class="table-search" type="text" placeholder="🔍 Search students..." id="tableSearch"/>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ID Number</th>
+                <th>Name</th>
+                <th>Year Level</th>
+                <th>Course</th>
+                <th>Remaining Sessions</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="student-tbody">
+              <tr class="empty-row"><td colspan="6">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD MODAL -->
+  <div class="modal-overlay hidden" id="addModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Add Student</h3>
+        <button class="modal-close" onclick="closeModal('addModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field"><label>ID Number</label><input type="text" id="add-id" placeholder="e.g. 2024-0001"/></div>
+        <div class="form-field"><label>Full Name</label><input type="text" id="add-name" placeholder="Jane Doe"/></div>
+        <div class="form-field"><label>Email</label><input type="email" id="add-email" placeholder="you@example.com"/></div>
+        <div class="form-field">
+          <label>Course</label>
+          <select id="add-course">
+            <option value="">— Select Course —</option>
+            <option value="BSIT">BSIT</option>
+            <option value="BSCS">BSCS</option>
+            <option value="BSAI">BSAI</option>
+            <option value="BSCE">BSCE</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Year Level</label>
+          <select id="add-level">
+            <option value="">— Select Year Level —</option>
+            <option value="1st Year">1st Year</option>
+            <option value="2nd Year">2nd Year</option>
+            <option value="3rd Year">3rd Year</option>
+            <option value="4th Year">4th Year</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Remaining Sessions</label><input type="number" id="add-sessions" value="30" min="0"/></div>
+        <p style="font-size:12px;color:var(--muted);">Default password: <strong style="color:var(--gold-light);">password123</strong></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="addStudent()">Add Student</button>
+        <button class="btn-outline-danger" onclick="closeModal('addModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT MODAL -->
+  <div class="modal-overlay hidden" id="editModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Edit Student</h3>
+        <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-id-db"/>
+        <div class="form-field"><label>ID Number</label><input type="text" id="edit-id-num"/></div>
+        <div class="form-field"><label>Full Name</label><input type="text" id="edit-name"/></div>
+        <div class="form-field"><label>Email</label><input type="email" id="edit-email"/></div>
+        <div class="form-field">
+          <label>Course</label>
+          <select id="edit-course">
+            <option value="BSIT">BSIT</option>
+            <option value="BSCS">BSCS</option>
+            <option value="BSAI">BSAI</option>
+            <option value="BSCE">BSCE</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Year Level</label>
+          <select id="edit-level">
+            <option value="1st Year">1st Year</option>
+            <option value="2nd Year">2nd Year</option>
+            <option value="3rd Year">3rd Year</option>
+            <option value="4th Year">4th Year</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Remaining Sessions</label><input type="number" id="edit-sessions" min="0"/></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="saveEdit()">Save Changes</button>
+        <button class="btn-outline-danger" onclick="closeModal('editModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>
+    requireAdmin();
+    let allStudents = [];
+
+    async function loadStudents() {
+      try {
+        const res  = await fetch(API + '/admin/students', { credentials: 'include' });
+        const data = await res.json();
+        allStudents = data.students || [];
+        renderTable(allStudents);
+      } catch { showToast('Cannot load students.', 'error'); }
+    }
+
+    function renderTable(students) {
+      const tbody = document.getElementById('student-tbody');
+      document.getElementById('row-count').textContent = `${students.length} student(s)`;
+      if (students.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No students found.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = students.map(s => `
+        <tr>
+          <td>${s.id_number || '—'}</td>
+          <td>${s.fullname}</td>
+          <td>${s.level}</td>
+          <td>${s.course}</td>
+          <td>${s.remaining_session}</td>
+          <td style="display:flex;gap:6px;">
+            <button class="btn-edit" onclick="openEdit(${s.id})">Edit</button>
+            <button class="btn-danger" onclick="deleteStudent(${s.id})">Delete</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    document.getElementById('tableSearch').addEventListener('input', function() {
+      const q = this.value.toLowerCase();
+      renderTable(allStudents.filter(s =>
+        (s.fullname || '').toLowerCase().includes(q) ||
+        (s.id_number || '').toLowerCase().includes(q) ||
+        (s.course || '').toLowerCase().includes(q)
+      ));
+    });
+
+    async function addStudent() {
+      const body = {
+        id_number:         document.getElementById('add-id').value.trim(),
+        fullname:          document.getElementById('add-name').value.trim(),
+        email:             document.getElementById('add-email').value.trim(),
+        course:            document.getElementById('add-course').value,
+        level:             document.getElementById('add-level').value,
+        remaining_session: document.getElementById('add-sessions').value
+      };
+      try {
+        const res  = await fetch(API + '/admin/students', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.success) { showToast('Student added!'); closeModal('addModal'); loadStudents(); }
+        else               showToast(data.message, 'error');
+      } catch { showToast('Server error.', 'error'); }
+    }
+
+    function openEdit(id) {
+      const s = allStudents.find(s => s.id === id);
+      if (!s) return;
+      document.getElementById('edit-id-db').value   = s.id;
+      document.getElementById('edit-id-num').value  = s.id_number || '';
+      document.getElementById('edit-name').value    = s.fullname;
+      document.getElementById('edit-email').value   = s.email;
+      document.getElementById('edit-course').value  = s.course;
+      document.getElementById('edit-level').value   = s.level;
+      document.getElementById('edit-sessions').value = s.remaining_session;
+      openModal('editModal');
+    }
+
+    async function saveEdit() {
+      const id   = document.getElementById('edit-id-db').value;
+      const body = {
+        id_number:         document.getElementById('edit-id-num').value.trim(),
+        fullname:          document.getElementById('edit-name').value.trim(),
+        email:             document.getElementById('edit-email').value.trim(),
+        course:            document.getElementById('edit-course').value,
+        level:             document.getElementById('edit-level').value,
+        remaining_session: document.getElementById('edit-sessions').value
+      };
+      try {
+        const res  = await fetch(API + '/admin/students/' + id, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.success) { showToast('Student updated!'); closeModal('editModal'); loadStudents(); }
+        else               showToast(data.message, 'error');
+      } catch { showToast('Server error.', 'error'); }
+    }
+
+    async function deleteStudent(id) {
+      if (!confirm('Delete this student? This cannot be undone.')) return;
+      await fetch(API + '/admin/students/' + id, { method: 'DELETE', credentials: 'include' });
+      showToast('Student deleted.');
+      loadStudents();
+    }
+
+    async function resetAllSessions() {
+      if (!confirm('Reset ALL students\' remaining sessions to 30?')) return;
+      const res  = await fetch(API + '/admin/students/reset-sessions', { method: 'POST', credentials: 'include' });
+      const data = await res.json();
+      showToast(data.message);
+      loadStudents();
+    }
+
+    loadStudents();
+  </script>
+</body>
+</html>

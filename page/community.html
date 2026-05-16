@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS | Community</title>
+  <link rel="stylesheet" href="../css/landing.css"/>
+  <link rel="stylesheet" href="../css/community.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img src="../images/uclogo.png" alt="UC Logo" class="nav-logo"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS Logo" class="nav-logo"/>
+      <span class="nav-title">College of Computer Studies Sit-in Monitoring System</span>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/page/dashboard.html" class="nav-link">Home</a></li>
+      <li class="dropdown">
+        <a href="#" class="nav-link dropdown-toggle active" id="communityToggle">Community ▾</a>
+        <ul class="dropdown-menu" id="communityMenu">
+          <li><a href="announcements.html">Announcements</a></li>
+          <li><a href="resources.html">Resources</a></li>
+          <li><a href="forums.html">Forums</a></li>
+        </ul>
+      </li>
+      <li><a href="landingpage.html#about" class="nav-link">About</a></li>
+      <li><a href="../login-register/index.html" class="nav-link">Login</a></li>
+      <li><a href="../login-register/index.html" class="nav-btn">Register</a></li>
+    </ul>
+  </nav>
+
+  <!-- PAGE HERO -->
+  <div class="page-hero">
+    <div class="page-hero-bg"></div>
+    <div class="page-hero-content">
+      <div class="breadcrumb"><a href="landingpage.html">Home</a> › Community</div>
+      <h1>🌐 Community</h1>
+      <p>Stay informed, access resources, and connect with fellow CCS students and faculty.</p>
+    </div>
+  </div>
+
+  <!-- COMMUNITY CARDS -->
+  <main class="community-main">
+
+    <div class="comm-grid">
+
+      <!-- Announcements -->
+      <a href="announcements.html" class="comm-card">
+        <div class="comm-card-icon">📢</div>
+        <div class="comm-card-body">
+          <h2>Announcements</h2>
+          <p>Stay updated with the latest news, lab schedules, exam reminders, and important notices from the CCS faculty and administration.</p>
+          <div class="comm-card-footer">
+            <span class="comm-card-tag important">Important</span>
+            <span class="comm-card-tag schedule">Schedule</span>
+            <span class="comm-card-tag general">General</span>
+          </div>
+        </div>
+        <div class="comm-card-arrow">→</div>
+      </a>
+
+      <!-- Resources -->
+      <a href="resources.html" class="comm-card">
+        <div class="comm-card-icon">📚</div>
+        <div class="comm-card-body">
+          <h2>Resources</h2>
+          <p>Access lab guides, reference sheets, downloadable forms, and study materials curated by the CCS faculty for students.</p>
+          <div class="comm-card-footer">
+            <span class="comm-card-tag schedule">Lab Guides</span>
+            <span class="comm-card-tag general">References</span>
+            <span class="comm-card-tag important">Forms</span>
+          </div>
+        </div>
+        <div class="comm-card-arrow">→</div>
+      </a>
+
+      <!-- Forums -->
+      <a href="forums.html" class="comm-card">
+        <div class="comm-card-icon">💬</div>
+        <div class="comm-card-body">
+          <h2>Forums</h2>
+          <p>Ask questions, share tips, start discussions, and connect with other CCS students and faculty members in the community.</p>
+          <div class="comm-card-footer">
+            <span class="comm-card-tag general">Questions</span>
+            <span class="comm-card-tag schedule">Discussions</span>
+            <span class="comm-card-tag important">Tips</span>
+          </div>
+        </div>
+        <div class="comm-card-arrow">→</div>
+      </a>
+
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-logos">
+      <img src="../images/uclogo.png" alt="UC" class="footer-logo"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS" class="footer-logo"/>
+    </div>
+    <p>© 2026 University of Cebu — College of Computer Studies. All rights reserved.</p>
+  </footer>
+
+  <script src="../js/landing.js"></script>
+  <script>
+    // ── SESSION-AWARE NAVBAR ───────────────────────────
+    (function() {
+      const storedUser  = localStorage.getItem('ccs_user');
+      const storedAdmin = localStorage.getItem('ccs_admin');
+      const API = 'http://127.0.0.1:5000/api';
+
+      function buildUserNav(name, avatarLetter, logoutFn) {
+        // Remove guest links (Login / Register)
+        document.querySelectorAll('#nav-links .nav-link, #nav-links .nav-btn').forEach(el => {
+          const href = el.getAttribute('href') || '';
+          if (href.includes('login-register') || href.includes('index.html')) {
+            el.closest('li').style.display = 'none';
+          }
+        });
+        // Build user badge + logout and append to nav
+        const navLinks = document.getElementById('nav-links');
+        if (!navLinks) return;
+
+        const userLi = document.createElement('li');
+        userLi.innerHTML = `<div class="nav-user">
+          <div class="nav-user-avatar">${avatarLetter}</div>
+          <span>${name}</span>
+        </div>`;
+        navLinks.appendChild(userLi);
+
+        const logoutLi = document.createElement('li');
+        logoutLi.innerHTML = `<button class="logout-btn" id="logout-btn">Logout</button>`;
+        navLinks.appendChild(logoutLi);
+
+        document.getElementById('logout-btn').addEventListener('click', logoutFn);
+      }
+
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        const name   = user.firstname || user.fullname.split(',')[0].trim();
+        const letter = (user.lastname || user.fullname).charAt(0).toUpperCase();
+        buildUserNav(name, letter, async () => {
+          try { await fetch(API + '/logout', { method: 'POST', credentials: 'include' }); } catch {}
+          localStorage.removeItem('ccs_user');
+          window.location.href = '/login-register/index.html';
+        });
+      } else if (storedAdmin) {
+        const admin  = JSON.parse(storedAdmin);
+        const letter = admin.username.charAt(0).toUpperCase();
+        buildUserNav(admin.username, letter, async () => {
+          try { await fetch(API + '/admin/logout', { method: 'POST', credentials: 'include' }); } catch {}
+          localStorage.removeItem('ccs_admin');
+          window.location.href = '/login-register/index.html';
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

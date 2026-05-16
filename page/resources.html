@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS | Resources</title>
+  <link rel="stylesheet" href="../css/landing.css"/>
+  <link rel="stylesheet" href="../css/community.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img src="../images/uclogo.png" alt="UC Logo" class="nav-logo"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS Logo" class="nav-logo"/>
+      <span class="nav-title">College of Computer Studies Sit-in Monitoring System</span>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/page/dashboard.html" class="nav-link">Home</a></li>
+      <li class="dropdown">
+        <a href="community.html" class="nav-link dropdown-toggle active" id="communityToggle">Community ▾</a>
+        <ul class="dropdown-menu" id="communityMenu">
+          <li><a href="announcements.html">Announcements</a></li>
+          <li><a href="resources.html" class="current">Resources</a></li>
+          <li><a href="forums.html">Forums</a></li>
+        </ul>
+      </li>
+      <li><a href="landingpage.html#about" class="nav-link">About</a></li>
+      <li><a href="../login-register/index.html" class="nav-link">Login</a></li>
+      <li><a href="../login-register/index.html" class="nav-btn">Register</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-hero">
+    <div class="page-hero-bg"></div>
+    <div class="page-hero-content">
+      <div class="breadcrumb"><a href="landingpage.html">Home</a> › <a href="#">Community</a> › Resources</div>
+      <h1>📚 Resources</h1>
+      <p>Access study materials, lab guides, reference documents, and helpful links curated by the CCS faculty.</p>
+    </div>
+  </div>
+
+  <main class="community-main">
+    <div class="filter-bar">
+      <div class="filter-tabs">
+        <button class="ftab active" data-filter="all">All</button>
+        <button class="ftab" data-filter="guide">Lab Guides</button>
+        <button class="ftab" data-filter="reference">References</button>
+        <button class="ftab" data-filter="form">Forms</button>
+      </div>
+      <input class="search-input" type="text" placeholder="🔍  Search resources…" id="announcementSearch"/>
+    </div>
+    <div class="resource-grid" id="annList">
+      <div class="res-card" data-category="guide">
+        <div class="res-icon">🖥️</div>
+        <div class="res-body">
+          <span class="ann-tag schedule">Lab Guide</span>
+          <h3>CCS Laboratory Rules & Regulations</h3>
+          <p>Complete guide to using CCS laboratories, including sit-in policies, equipment usage rules, and student conduct guidelines.</p>
+          <div class="ann-footer"><span class="ann-author">📄 PDF · 2.1 MB</span><button class="ann-read">Download</button></div>
+        </div>
+      </div>
+      <div class="res-card" data-category="guide">
+        <div class="res-icon">📋</div>
+        <div class="res-body">
+          <span class="ann-tag schedule">Lab Guide</span>
+          <h3>How to Use the Sit-in Monitoring System</h3>
+          <p>Step-by-step user manual for students on how to register, log sessions, and track their sit-in history using this platform.</p>
+          <div class="ann-footer"><span class="ann-author">📄 PDF · 1.4 MB</span><button class="ann-read">Download</button></div>
+        </div>
+      </div>
+      <div class="res-card" data-category="reference">
+        <div class="res-icon">📘</div>
+        <div class="res-body">
+          <span class="ann-tag general">Reference</span>
+          <h3>Python Programming — Quick Reference Sheet</h3>
+          <p>A concise cheat sheet covering Python syntax, data structures, OOP concepts, and common libraries used in CCS courses.</p>
+          <div class="ann-footer"><span class="ann-author">📄 PDF · 0.8 MB</span><button class="ann-read">Download</button></div>
+        </div>
+      </div>
+      <div class="res-card" data-category="reference">
+        <div class="res-icon">🗄️</div>
+        <div class="res-body">
+          <span class="ann-tag general">Reference</span>
+          <h3>Database Design & SQL Fundamentals</h3>
+          <p>Reference material for database normalization, ER diagrams, and SQL query writing — ideal for IT and CS students.</p>
+          <div class="ann-footer"><span class="ann-author">📄 PDF · 3.2 MB</span><button class="ann-read">Download</button></div>
+        </div>
+      </div>
+      <div class="res-card" data-category="form">
+        <div class="res-icon">📝</div>
+        <div class="res-body">
+          <span class="ann-tag important">Form</span>
+          <h3>Sit-in Request Form (Manual)</h3>
+          <p>Printable manual sit-in request form for use when the online system is unavailable. Submit to the laboratory in-charge.</p>
+          <div class="ann-footer"><span class="ann-author">📄 DOCX · 0.2 MB</span><button class="ann-read">Download</button></div>
+        </div>
+      </div>
+      <div class="res-card" data-category="form">
+        <div class="res-icon">📑</div>
+        <div class="res-body">
+          <span class="ann-tag important">Form</span>
+          <h3>CCS Clearance Form — 2nd Sem AY 2025–2026</h3>
+          <p>Official clearance form for graduating and regular students. Complete all sections and have it signed by the laboratory in-charge.</p>
+          <div class="ann-footer"><span class="ann-author">📄 PDF · 0.3 MB</span><button class="ann-read">Download</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="empty-state hidden" id="emptyState"><span>🔍</span><p>No resources found.</p></div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-logos">
+      <img src="../images/uclogo.png" alt="UC" class="footer-logo"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS" class="footer-logo"/>
+    </div>
+    <p>© 2026 University of Cebu — College of Computer Studies. All rights reserved.</p>
+  </footer>
+
+  <script src="../js/landing.js"></script>
+  <script src="../js/community.js"></script>
+  <script>
+    // ── SESSION-AWARE NAVBAR ───────────────────────────
+    (function() {
+      const storedUser  = localStorage.getItem('ccs_user');
+      const storedAdmin = localStorage.getItem('ccs_admin');
+      const API = 'http://127.0.0.1:5000/api';
+
+      function buildUserNav(name, avatarLetter, logoutFn) {
+        // Remove guest links (Login / Register)
+        document.querySelectorAll('#nav-links .nav-link, #nav-links .nav-btn').forEach(el => {
+          const href = el.getAttribute('href') || '';
+          if (href.includes('login-register') || href.includes('index.html')) {
+            el.closest('li').style.display = 'none';
+          }
+        });
+        // Build user badge + logout and append to nav
+        const navLinks = document.getElementById('nav-links');
+        if (!navLinks) return;
+
+        const userLi = document.createElement('li');
+        userLi.innerHTML = `<div class="nav-user">
+          <div class="nav-user-avatar">${avatarLetter}</div>
+          <span>${name}</span>
+        </div>`;
+        navLinks.appendChild(userLi);
+
+        const logoutLi = document.createElement('li');
+        logoutLi.innerHTML = `<button class="logout-btn" id="logout-btn">Logout</button>`;
+        navLinks.appendChild(logoutLi);
+
+        document.getElementById('logout-btn').addEventListener('click', logoutFn);
+      }
+
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        const name   = user.firstname || user.fullname.split(',')[0].trim();
+        const letter = (user.lastname || user.fullname).charAt(0).toUpperCase();
+        buildUserNav(name, letter, async () => {
+          try { await fetch(API + '/logout', { method: 'POST', credentials: 'include' }); } catch {}
+          localStorage.removeItem('ccs_user');
+          window.location.href = '/login-register/index.html';
+        });
+      } else if (storedAdmin) {
+        const admin  = JSON.parse(storedAdmin);
+        const letter = admin.username.charAt(0).toUpperCase();
+        buildUserNav(admin.username, letter, async () => {
+          try { await fetch(API + '/admin/logout', { method: 'POST', credentials: 'include' }); } catch {}
+          localStorage.removeItem('ccs_admin');
+          window.location.href = '/login-register/index.html';
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
