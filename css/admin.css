@@ -494,6 +494,7 @@ body {
   .admin-main { padding: 20px 16px 60px; }
   .admin-nav-links { display: none; }
 }
+<<<<<<< HEAD
 
 /* ── Reservation Toggle ── */
 .resv-toggle-label {
@@ -526,3 +527,5 @@ body {
   box-shadow: 0 1px 4px rgba(0,0,0,0.3);
 }
 .resv-toggle-label input:checked + .resv-toggle-track .resv-toggle-thumb { left: 23px; }
+=======
+>>>>>>> bb05e0770d79d2721107efe3cee684d69393c7c9

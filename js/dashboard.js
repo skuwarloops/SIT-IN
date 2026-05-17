@@ -264,6 +264,7 @@ pollNotifications();
 setInterval(pollNotifications, 15000);
 
 // ── INIT ───────────────────────────────────────────────
+<<<<<<< HEAD
 loadAnnouncements();
 // ══════════════════════════════════════════════════════
 //  SIT-IN SUMMARY + SESSIONS TABLE
@@ -318,3 +319,6 @@ async function loadSitInSummary() {
 }
 
 loadSitInSummary();
+=======
+loadAnnouncements();
+>>>>>>> bb05e0770d79d2721107efe3cee684d69393c7c9

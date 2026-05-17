@@ -192,6 +192,7 @@ def init_db():
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         ''')
+<<<<<<< HEAD
         conn.execute('''
             CREATE TABLE IF NOT EXISTS settings (
                 key   TEXT PRIMARY KEY,
@@ -211,6 +212,8 @@ def init_db():
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         ''')
+=======
+>>>>>>> bb05e0770d79d2721107efe3cee684d69393c7c9
         try:
             conn.execute(
                 'INSERT INTO admins (username, password) VALUES (?,?)',
@@ -218,10 +221,13 @@ def init_db():
             )
         except sqlite3.IntegrityError:
             pass
+<<<<<<< HEAD
         try:
             conn.execute("INSERT INTO settings (key, value) VALUES ('reservation_enabled', '1')")
         except sqlite3.IntegrityError:
             pass
+=======
+>>>>>>> bb05e0770d79d2721107efe3cee684d69393c7c9
         conn.commit()
 
 init_db()
@@ -942,6 +948,7 @@ def get_sitin_summary():
         if s['duration_minutes']:
             durations.append(s['duration_minutes'])
     
+<<<<<<< HEAD
     total_minutes  = sum(durations)
     total_hours    = round(total_minutes / 60, 1)
     avg_duration   = round(statistics.mean(durations)) if durations else 0
@@ -969,6 +976,32 @@ def get_sitin_summary():
             'total_sessions':         total_sessions,
             'total_hours':            total_hours,
             'avg_duration_minutes':   avg_duration,
+=======
+    avg_duration = round(statistics.mean(durations)) if durations else 0
+    longest_session = max(durations) if durations else 0
+    
+    sessions_data = []
+    for s in sessions:
+        sessions_data.append({
+            'id': s['id'],
+            'date': s['created'][:10] if s['created'] else '',
+            'time_in': s['time_in'],
+            'time_out': s['time_out'],
+            'duration_minutes': s['duration_minutes'],
+            'pc_number': s['pc_number'],
+            'lab': s['lab'],
+            'purpose': s['purpose'],
+            'status': s['status'],
+            'remarks': s['remarks']
+        })
+    
+    conn.close()
+    
+    return jsonify({
+        'summary': {
+            'total_sessions': total_sessions,
+            'avg_duration_minutes': avg_duration,
+>>>>>>> bb05e0770d79d2721107efe3cee684d69393c7c9
             'longest_session_minutes': longest_session
         },
         'sessions': sessions_data
@@ -1506,6 +1539,7 @@ atexit.register(lambda: scheduler.shutdown())
 
 if __name__ == '__main__':
     print("CCS Backend running — open http://127.0.0.1:5000 in your browser")
+<<<<<<< HEAD
     app.run(debug=True, port=5000, use_reloader=False)
 # ══════════════════════════════════════════════════════════
 #  RESERVATION ENABLE / DISABLE  (admin control)
@@ -1625,3 +1659,6 @@ def reject_testimonial(tid):
         conn.execute('DELETE FROM testimonials WHERE id=?', (tid,))
         conn.commit()
     return jsonify({'success': True})
+=======
+    app.run(debug=True, port=5000, use_reloader=False)
+>>>>>>> bb05e0770d79d2721107efe3cee684d69393c7c9

@@ -237,6 +237,7 @@
 @media (max-width: 860px) {
   .dash-wrapper { grid-template-columns: 1fr; }
   .dash-rules   { max-height: 300px; }
+<<<<<<< HEAD
 }
 /* ══════════════════════════════════════════════════════════
    SIT-IN SUMMARY SECTION
@@ -378,3 +379,6 @@
   .sum-cards { grid-template-columns: 1fr 1fr; }
   .sum-card-val { font-size: 24px; }
 }
+=======
+}
+>>>>>>> bb05e0770d79d2721107efe3cee684d69393c7c9
