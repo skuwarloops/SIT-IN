@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS | My Reservations</title>
+  <link rel="stylesheet" href="/css/landing.css"/>
+  <link rel="stylesheet" href="/css/dashboard.css"/>
+  <link rel="stylesheet" href="/css/reservation.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img src="/images/uclogo.png" alt="UC Logo" class="nav-logo"/>
+      <img src="/images/ccsmainlogo.png" alt="CCS Logo" class="nav-logo"/>
+      <span class="nav-title">College of Computer Studies Sit-in Monitoring System</span>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/page/dashboard.html" class="nav-link">Home</a></li>
+      <li class="dropdown">
+        <a href="/page/community.html" class="nav-link dropdown-toggle" id="communityToggle">Community &#9660;</a>
+        <ul class="dropdown-menu" id="communityMenu">
+          <li><a href="/page/announcements.html">Announcements</a></li>
+          <li><a href="/page/resources.html">Resources</a></li>
+          <li><a href="/page/forums.html">Forums</a></li>
+        </ul>
+        <li><a href="/page/history.html" class="nav-link">History</a></li>
+        <li><a href="/page/reservation.html" class="nav-link">Reservation</a></li>
+        
+      </li>
+      <li class="dropdown" id="user-dropdown-li">
+        <a href="#" class="nav-link dropdown-toggle" id="userDropdownToggle" style="display:flex;align-items:center;gap:8px;">
+          <div class="nav-user-avatar" id="nav-avatar">?</div>
+          <span id="nav-username">Loading...</span>
+        </a>
+        <ul class="dropdown-menu" id="userDropdownMenu" style="right:0;left:auto;min-width:180px;">
+          <li><a href="/page/edit-profile.html">✏️ Edit Profile</a></li>
+        </ul>
+      </li>
+      <li><button class="logout-btn" id="logout-btn">Logout</button></li>
+    </ul>
+  </nav>
+
+  <div class="dashboard-main">
+
+    <!-- HEADER -->
+    <div class="res-page-header">
+      <div>
+        <h1 class="res-page-title">📅 My Reservations</h1>
+        <p class="res-page-sub">Reserve a sit-in session in advance. Your request will be reviewed by the admin.</p>
+      </div>
+      <button class="res-new-btn" onclick="openModal()">+ New Reservation</button>
+    </div>
+
+    <!-- STATUS TABS -->
+    <div class="res-tabs">
+      <button class="res-tab active" data-filter="all">All</button>
+      <button class="res-tab" data-filter="Pending">Pending</button>
+      <button class="res-tab" data-filter="Approved">Approved</button>
+      <button class="res-tab" data-filter="Rejected">Rejected</button>
+      <button class="res-tab" data-filter="Cancelled">Cancelled</button>
+    </div>
+
+    <!-- RESERVATIONS LIST -->
+    <div id="res-list">
+      <div class="res-loading">Loading your reservations...</div>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <div class="footer-logos">
+      <img src="/images/uclogo.png" alt="UC" class="footer-logo"/>
+      <img src="/images/ccsmainlogo.png" alt="CCS" class="footer-logo"/>
+    </div>
+    <p>&copy; 2026 University of Cebu &mdash; College of Computer Studies. All rights reserved.</p>
+  </footer>
+
+  <!-- NEW RESERVATION MODAL -->
+  <div class="res-modal-overlay hidden" id="resModal">
+    <div class="res-modal">
+      <div class="res-modal-header">
+        <h3>📅 New Sit-in Reservation</h3>
+        <button class="res-modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="res-modal-body">
+        <div id="modal-err" class="res-modal-err hidden"></div>
+
+        <div class="res-form-row">
+          <div class="res-form-field">
+            <label>Purpose</label>
+            <select id="res-purpose">
+              <option value="">— Select Purpose —</option>
+              <option value="C Programming">C Programming</option>
+              <option value="Java">Java</option>
+              <option value="Python">Python</option>
+              <option value="PHP">PHP</option>
+              <option value="ASP.Net">ASP.Net</option>
+              <option value="C#">C#</option>
+              <option value="Research">Research</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="res-form-field">
+            <label>Laboratory</label>
+            <select id="res-lab">
+              <option value="">— Select Lab —</option>
+              <option value="Lab 528">Lab 528</option>
+              <option value="Lab 530">Lab 530</option>
+              <option value="Lab 540">Lab 540</option>
+              <option value="Lab 524">Lab 524</option>
+              <option value="Lab 526">Lab 526</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="res-form-row">
+          <div class="res-form-field">
+            <label>Date</label>
+            <input type="date" id="res-date"/>
+          </div>
+        </div>
+
+        <div class="res-form-row">
+          <div class="res-form-field">
+            <label>Time Start</label>
+            <input type="time" id="res-time-start"/>
+          </div>
+          <div class="res-form-field">
+            <label>Time End</label>
+            <input type="time" id="res-time-end"/>
+          </div>
+        </div>
+      </div>
+      <div class="res-modal-footer">
+        <button class="res-submit-btn" id="res-submit-btn" onclick="submitReservation()">Submit Reservation</button>
+        <button class="res-cancel-btn" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="res-toast hidden"></div>
+
+  <script src="/js/landing.js"></script>
+  <script>
+    const API = 'http://127.0.0.1:5000/api';
+    let user = null;
+    let allReservations = [];
+    let currentFilter = 'all';
+
+    // ── AUTH CHECK ─────────────────────────────────────
+    const stored = localStorage.getItem('ccs_user');
+    if (!stored) {
+      window.location.href = '/login-register/index.html';
+    } else {
+      user = JSON.parse(stored);
+      document.getElementById('nav-username').textContent = user.firstname || user.fullname.split(' ')[0];
+      document.getElementById('nav-avatar').textContent   = (user.lastname || user.fullname).charAt(0).toUpperCase();
+    }
+
+    // ── LOGOUT ─────────────────────────────────────────
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      try { await fetch(API + '/logout', { method: 'POST', credentials: 'include' }); } catch {}
+      localStorage.removeItem('ccs_user');
+      window.location.href = '/login-register/index.html';
+    });
+
+    // ── LOAD RESERVATIONS ──────────────────────────────
+    async function loadReservations() {
+      try {
+        const res  = await fetch(`${API}/reservations/${user.id}`, { credentials: 'include' });
+        const data = await res.json();
+        allReservations = data.reservations || [];
+        renderReservations();
+      } catch {
+        document.getElementById('res-list').innerHTML =
+          '<div class="res-empty">Could not load reservations. Make sure the server is running.</div>';
+      }
+    }
+
+    function renderReservations() {
+      const list = document.getElementById('res-list');
+      const filtered = currentFilter === 'all'
+        ? allReservations
+        : allReservations.filter(r => r.status === currentFilter);
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="res-empty">
+          <span>📅</span>
+          <p>${currentFilter === 'all' ? 'No reservations yet. Click "+ New Reservation" to get started.' : 'No ' + currentFilter.toLowerCase() + ' reservations.'}</p>
+        </div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(r => `
+        <div class="res-card">
+          <div class="res-card-left">
+            <div class="res-card-status ${r.status.toLowerCase()}">${statusIcon(r.status)} ${r.status}</div>
+            <div class="res-card-date">📅 ${formatDate(r.date)}</div>
+            <div class="res-card-time">🕐 ${r.time_start} – ${r.time_end}</div>
+          </div>
+          <div class="res-card-center">
+            <div class="res-card-purpose">${r.purpose}</div>
+            <div class="res-card-lab">🏫 ${r.lab}</div>
+            <div class="res-card-submitted">Submitted: ${formatDateTime(r.created)}</div>
+          </div>
+          <div class="res-card-right">
+            ${r.status === 'Pending'
+              ? `<button class="res-cancel-action-btn" onclick="cancelReservation(${r.id})">Cancel</button>`
+              : ''}
+          </div>
+        </div>`).join('');
+    }
+
+    // ── FILTER TABS ────────────────────────────────────
+    document.querySelectorAll('.res-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.res-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentFilter = tab.dataset.filter;
+        renderReservations();
+      });
+    });
+
+    // ── MODAL ──────────────────────────────────────────
+    function openModal() {
+      // Set min date to today
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('res-date').min = today;
+      document.getElementById('res-date').value = today;
+      document.getElementById('modal-err').classList.add('hidden');
+      document.getElementById('resModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('resModal').classList.add('hidden');
+      document.getElementById('res-purpose').value    = '';
+      document.getElementById('res-lab').value         = '';
+      document.getElementById('res-time-start').value  = '';
+      document.getElementById('res-time-end').value    = '';
+    }
+
+    async function submitReservation() {
+      const purpose    = document.getElementById('res-purpose').value;
+      const lab        = document.getElementById('res-lab').value;
+      const date       = document.getElementById('res-date').value;
+      const time_start = document.getElementById('res-time-start').value;
+      const time_end   = document.getElementById('res-time-end').value;
+      const errEl      = document.getElementById('modal-err');
+
+      if (!purpose || !lab || !date || !time_start || !time_end) {
+        errEl.textContent = 'Please fill in all fields.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (time_end <= time_start) {
+        errEl.textContent = 'End time must be after start time.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      const btn = document.getElementById('res-submit-btn');
+      btn.disabled = true; btn.textContent = 'Submitting...';
+
+      try {
+        const res  = await fetch(`${API}/reservations`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ user_id: user.id, purpose, lab, date, time_start, time_end })
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeModal();
+          showToast(data.message, 'success');
+          loadReservations();
+        } else {
+          errEl.textContent = data.message;
+          errEl.classList.remove('hidden');
+        }
+      } catch {
+        errEl.textContent = 'Cannot connect to server.';
+        errEl.classList.remove('hidden');
+      }
+      btn.disabled = false; btn.textContent = 'Submit Reservation';
+    }
+
+    async function cancelReservation(id) {
+      if (!confirm('Cancel this reservation?')) return;
+      try {
+        const res  = await fetch(`${API}/reservations/${id}/cancel`, { method: 'POST', credentials: 'include' });
+        const data = await res.json();
+        showToast(data.message, data.success ? 'success' : 'error');
+        loadReservations();
+      } catch { showToast('Server error.', 'error'); }
+    }
+
+    // ── HELPERS ────────────────────────────────────────
+    function statusIcon(s) {
+      return { Pending: '⏳', Approved: '✅', Rejected: '❌', Cancelled: '🚫' }[s] || '•';
+    }
+
+    function formatDate(d) {
+      if (!d) return '—';
+      return new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' });
+    }
+
+    function formatDateTime(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('en-PH', { month:'short', day:'numeric', year:'numeric' });
+    }
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `res-toast ${type}`;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 3000);
+    }
+
+    loadReservations();
+
+    // Check if reservations are enabled by admin
+    (async () => {
+      try {
+        const res  = await fetch('http://127.0.0.1:5000/api/settings/reservation');
+        const data = await res.json();
+        if (!data.reservation_enabled) {
+          const btn = document.getElementById('res-submit-btn');
+          if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Reservations Disabled';
+            btn.title = 'Reservations are currently disabled by the administrator.';
+            btn.style.opacity  = '0.5';
+            btn.style.cursor   = 'not-allowed';
+          }
+        }
+      } catch {}
+    })();
+
+    // User dropdown toggle
+    const userDropdownToggle = document.getElementById('userDropdownToggle');
+    const userDropdownMenu   = document.getElementById('userDropdownMenu');
+    if (userDropdownToggle && userDropdownMenu) {
+      userDropdownToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        userDropdownMenu.classList.toggle('open');
+      });
+      document.addEventListener('click', (e) => {
+        if (!userDropdownToggle.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+          userDropdownMenu.classList.remove('open');
+        }
+      });
+    }
+  </script>
+</body>
+</html>

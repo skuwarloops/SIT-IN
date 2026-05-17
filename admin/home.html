@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS Admin | Home</title>
+  <link rel="stylesheet" href="../css/admin.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav class="admin-navbar">
+    <div class="admin-nav-brand">
+      <img src="../images/uclogo.png" alt="UC"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS"/>
+      College of Computer Studies Admin
+    </div>
+    <ul class="admin-nav-links">
+      <li><a href="home.html" class="active">Home</a></li>
+      <li><a href="search.html">Search</a></li>
+      <li><a href="students.html">Students</a></li>
+      <li><a href="sitin.html">Sit-in</a></li>
+      <li><a href="sitin-records.html">View Sit-in Records</a></li>
+      <li><a href="feedback.html" class="active">Feedback</a></li>
+      <li><a href="/admin/reservations.html" class="active">Reservations</a></li>
+      <li><a href="testimonials.html">Testimonials</a></li>
+    </ul>
+    <button class="admin-logout-btn" onclick="adminLogout()">Log out</button>
+  </nav>
+
+  <div class="admin-main">
+    <div class="admin-page-title">Dashboard</div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="sc-label">Students Registered</div>
+        <div class="sc-value" id="stat-students">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-label">Currently Sit-in</div>
+        <div class="sc-value" id="stat-current">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-label">Total Sit-in</div>
+        <div class="sc-value" id="stat-total">—</div>
+      </div>
+      <div class="stat-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;">
+        <div class="sc-label">Student Reservations</div>
+        <label class="resv-toggle-label">
+          <input type="checkbox" id="reservation-toggle" onchange="toggleReservation(this.checked)"/>
+          <span class="resv-toggle-track">
+            <span class="resv-toggle-thumb"></span>
+          </span>
+          <span id="resv-toggle-text" style="font-size:13px;font-weight:600;color:var(--text);">Loading...</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- CHART + ANNOUNCEMENTS -->
+    <div class="admin-two-col">
+
+      <!-- Pie Chart -->
+      <div class="admin-panel">
+        <div class="admin-panel-header">
+          <h3>📊 Sit-in by Purpose</h3>
+        </div>
+        <div class="admin-panel-body">
+          <div class="chart-wrap">
+            <canvas id="pieChart" width="180" height="180"></canvas>
+            <div class="chart-legend" id="chartLegend">
+              <div style="font-size:13px;color:var(--muted);">Loading...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Announcements -->
+      <div class="admin-panel">
+        <div class="admin-panel-header">
+          <h3>📢 Announcements</h3>
+        </div>
+        <div class="admin-panel-body">
+          <div class="form-field" style="margin-bottom:12px;">
+            <textarea id="ann-content" rows="3" placeholder="Write a new announcement..."></textarea>
+          </div>
+          <button class="btn-primary" onclick="postAnnouncement()" style="margin-bottom:20px;">Submit</button>
+
+          <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:12px;">Posted Announcements</div>
+          <div id="ann-list">
+            <div style="color:var(--muted);font-size:13px;">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>
+    requireAdmin();
+    setActiveNav();
+
+    const COLORS = ['#c9a227','#5b2d8e','#1a4a8a','#22c55e','#ef4444','#f0cd6e','#60a5fa'];
+
+    async function loadStats() {
+      try {
+        const res  = await fetch(API + '/admin/stats', { credentials: 'include' });
+        const data = await res.json();
+        if (!data.success) return;
+        const s = data.stats;
+        document.getElementById('stat-students').textContent = s.total_students;
+        document.getElementById('stat-current').textContent  = s.currently_sitin;
+        document.getElementById('stat-total').textContent    = s.total_sitin;
+
+        const purposes = s.purpose_counts;
+        if (purposes.length > 0) {
+          drawPieChart('pieChart',
+            purposes.map(p => ({ value: p.cnt })),
+            COLORS
+          );
+          document.getElementById('chartLegend').innerHTML = purposes.map((p, i) =>
+            `<div class="legend-item">
+               <div class="legend-dot" style="background:${COLORS[i % COLORS.length]}"></div>
+               <span>${p.purpose || 'Unknown'} (${p.cnt})</span>
+             </div>`
+          ).join('');
+        } else {
+          document.getElementById('chartLegend').innerHTML =
+            '<div style="color:var(--muted);font-size:13px;">No sit-in data yet.</div>';
+        }
+      } catch { showToast('Cannot load stats.', 'error'); }
+    }
+
+    async function loadAnnouncements() {
+      try {
+        const res  = await fetch(API + '/admin/announcements', { credentials: 'include' });
+        const data = await res.json();
+        const list = document.getElementById('ann-list');
+        if (!data.success || data.announcements.length === 0) {
+          list.innerHTML = '<div style="color:var(--muted);font-size:13px;">No announcements yet.</div>';
+          return;
+        }
+        list.innerHTML = data.announcements.map(a => `
+          <div class="ann-entry">
+            <div class="ann-meta-row">
+              <span class="ann-author">${a.author} | ${formatDate(a.created)}</span>
+              <button class="btn-danger" style="padding:3px 10px;font-size:11px;" onclick="deleteAnn(${a.id})">Delete</button>
+            </div>
+            <div class="ann-text">${a.content}</div>
+          </div>`).join('');
+      } catch { showToast('Cannot load announcements.', 'error'); }
+    }
+
+    async function postAnnouncement() {
+      const content = document.getElementById('ann-content').value.trim();
+      if (!content) { showToast('Please write an announcement.', 'error'); return; }
+      try {
+        const res  = await fetch(API + '/admin/announcements', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ content })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('ann-content').value = '';
+          showToast('Announcement posted!');
+          loadAnnouncements();
+        } else {
+          showToast(data.message, 'error');
+        }
+      } catch { showToast('Server error.', 'error'); }
+    }
+
+    async function deleteAnn(id) {
+      if (!confirm('Delete this announcement?')) return;
+      await fetch(API + '/admin/announcements/' + id, { method: 'DELETE', credentials: 'include' });
+      showToast('Announcement deleted.');
+      loadAnnouncements();
+    }
+
+    loadStats();
+    loadAnnouncements();
+
+    // ── Reservation toggle ──
+    async function loadReservationSetting() {
+      try {
+        const res  = await fetch(API + '/admin/settings/reservation', { credentials: 'include' });
+        const data = await res.json();
+        const enabled = data.reservation_enabled;
+        document.getElementById('reservation-toggle').checked = enabled;
+        document.getElementById('resv-toggle-text').textContent = enabled ? 'Enabled' : 'Disabled';
+        document.getElementById('resv-toggle-text').style.color = enabled ? '#22c55e' : '#ef4444';
+      } catch {}
+    }
+
+    async function toggleReservation(enabled) {
+      try {
+        await fetch(API + '/admin/settings/reservation', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled })
+        });
+        document.getElementById('resv-toggle-text').textContent = enabled ? 'Enabled' : 'Disabled';
+        document.getElementById('resv-toggle-text').style.color = enabled ? '#22c55e' : '#ef4444';
+        showToast('Reservations ' + (enabled ? 'enabled' : 'disabled') + '.');
+      } catch { showToast('Could not update setting.', 'error'); }
+    }
+
+    loadReservationSetting();
+  </script>
+</body>
+</html>

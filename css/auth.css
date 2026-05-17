@@ -1,0 +1,43 @@
+/* ── SELECT DROPDOWN ──────────────────────────────────── */
+select {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a9bbf' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  cursor: pointer;
+}
+
+select:focus {
+  border-color: var(--ccs-purple);
+  box-shadow: 0 0 0 3px rgba(91,45,142,0.2);
+}
+
+select.invalid { border-color: var(--error); }
+
+select option {
+  background: #0d1e35;
+  color: var(--text);
+}
+
+/* ── SERVER ERROR BANNER ──────────────────────────────── */
+.server-error {
+  background: rgba(224,85,85,0.1);
+  border: 1px solid rgba(224,85,85,0.3);
+  color: #f87171;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 8px;
+}

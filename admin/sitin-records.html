@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS Admin | Sit-in Records</title>
+  <link rel="stylesheet" href="../css/admin.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+
+  <!-- Export libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <style>
+    .export-wrap { position: relative; display: inline-block; }
+    .btn-export {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 18px;
+      background: linear-gradient(135deg, var(--navy-dark), var(--purple));
+      color: #fff; border: none; border-radius: 8px;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s; white-space: nowrap;
+    }
+    .btn-export:hover { opacity: 0.85; }
+    .btn-export .arrow { font-size: 10px; transition: transform 0.2s; }
+    .btn-export.open .arrow { transform: rotate(180deg); }
+
+    .export-menu {
+      display: none; position: absolute; right: 0; top: calc(100% + 6px);
+      background: #131c2e; border: 1px solid var(--card-border);
+      border-radius: 10px; overflow: hidden; z-index: 200; min-width: 185px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      animation: dropIn 0.18s ease;
+    }
+    @keyframes dropIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+    .export-menu.open { display: block; }
+
+    .export-menu-label {
+      padding: 8px 16px 4px; font-size: 10px; font-weight: 700;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .export-menu-item {
+      display: flex; align-items: center; gap: 10px; padding: 11px 16px;
+      font-size: 13px; font-weight: 500; color: var(--text); cursor: pointer;
+      transition: background 0.15s; border: none; background: none;
+      width: 100%; font-family: 'DM Sans', sans-serif; text-align: left;
+    }
+    .export-menu-item:hover { background: rgba(255,255,255,0.06); }
+    .export-icon {
+      width: 28px; height: 28px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .icon-pdf  { background: rgba(239,68,68,0.15);  color: #f87171; }
+    .icon-csv  { background: rgba(34,197,94,0.15);  color: #4ade80; }
+    .icon-docx { background: rgba(59,130,246,0.15); color: #60a5fa; }
+
+    .records-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+    }
+    .toolbar-left  { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .toolbar-right { display: flex; align-items: center; gap: 10px; }
+  </style>
+</head>
+<body>
+
+  <nav class="admin-navbar">
+    <div class="admin-nav-brand">
+      <img src="../images/uclogo.png" alt="UC"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS"/>
+      College of Computer Studies Admin
+    </div>
+    <ul class="admin-nav-links">
+      <li><a href="home.html">Home</a></li>
+      <li><a href="search.html">Search</a></li>
+      <li><a href="students.html">Students</a></li>
+      <li><a href="sitin.html">Sit-in</a></li>
+      <li><a href="sitin-records.html" class="active">View Sit-in Records</a></li>
+      <li><a href="feedback.html">Feedback</a></li>
+      <li><a href="reservations.html">Reservations</a></li>
+      <li><a href="testimonials.html">Testimonials</a></li>
+    </ul>
+    <button class="admin-logout-btn" onclick="adminLogout()">Log out</button>
+  </nav>
+
+  <div class="admin-main">
+    <div class="admin-page-title">Sit-in Records</div>
+
+    <div class="admin-panel">
+      <div class="admin-panel-header">
+        <h3>📄 All Sit-in Records</h3>
+        <button class="btn-outline-danger" onclick="loadRecords()" style="font-size:12px;padding:6px 14px;">↻ Refresh</button>
+      </div>
+      <div class="admin-panel-body">
+
+        <div class="records-toolbar">
+          <div class="toolbar-left">
+            <div style="font-size:13px;color:var(--muted);" id="row-count">Loading...</div>
+            <select id="statusFilter" style="background:rgba(255,255,255,0.04);border:1px solid var(--card-border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;">
+              <option value="all">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Done">Done</option>
+            </select>
+            <input class="table-search" type="text" placeholder="🔍 Search records..." id="tableSearch"/>
+          </div>
+          <div class="toolbar-right">
+            <div class="export-wrap" id="exportWrap">
+              <button class="btn-export" id="exportBtn" onclick="toggleExportMenu()">
+                📥 Generate Report <span class="arrow">▼</span>
+              </button>
+              <div class="export-menu" id="exportMenu">
+                <div class="export-menu-label">Export As</div>
+                <button class="export-menu-item" onclick="exportPDF()">
+                  <span class="export-icon icon-pdf">📄</span> PDF Document
+                </button>
+                <button class="export-menu-item" onclick="exportCSV()">
+                  <span class="export-icon icon-csv">📊</span> CSV Spreadsheet
+                </button>
+                <button class="export-menu-item" onclick="exportDOCX()">
+                  <span class="export-icon icon-docx">📝</span> Word Document
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Sit ID</th><th>ID Number</th><th>Name</th><th>Purpose</th>
+                <th>Lab</th><th>Session</th><th>Status</th><th>Date</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="records-tbody">
+              <tr class="empty-row"><td colspan="9">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>
+    requireAdmin();
+
+    let allRecords      = [];
+    let filteredRecords = [];
+
+    async function loadRecords() {
+      try {
+        const res  = await fetch(API + '/admin/sitin', { credentials: 'include' });
+        const data = await res.json();
+        allRecords = data.records || [];
+        applyFilters();
+      } catch { showToast('Cannot load records.', 'error'); }
+    }
+
+    function applyFilters() {
+      const q      = document.getElementById('tableSearch').value.toLowerCase();
+      const status = document.getElementById('statusFilter').value;
+      filteredRecords = allRecords.filter(r => {
+        const matchStatus = status === 'all' || r.status === status;
+        const matchSearch = (r.fullname  || '').toLowerCase().includes(q) ||
+                            (r.id_number || '').toLowerCase().includes(q) ||
+                            (r.purpose   || '').toLowerCase().includes(q) ||
+                            (r.lab       || '').toLowerCase().includes(q);
+        return matchStatus && matchSearch;
+      });
+      renderTable(filteredRecords);
+    }
+
+    function renderTable(records) {
+      document.getElementById('row-count').textContent = `${records.length} record(s)`;
+      const tbody = document.getElementById('records-tbody');
+      if (!records.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="9">No records found.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = records.map(r => `
+        <tr>
+          <td>${r.id}</td>
+          <td>${r.id_number || '—'}</td>
+          <td>${r.fullname}</td>
+          <td>${r.purpose}</td>
+          <td>${r.lab}</td>
+          <td>${r.session}</td>
+          <td>${r.status === 'Active' ? '<span class="badge-active">Active</span>' : '<span class="badge-done">Done</span>'}</td>
+          <td>${formatDate(r.created)}</td>
+          <td style="display:flex;gap:6px;">
+            ${r.status === 'Active' ? `<button class="btn-success" onclick="endSitin(${r.id})">End</button>` : ''}
+            <button class="btn-danger" onclick="deleteRecord(${r.id})">Delete</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    document.getElementById('tableSearch').addEventListener('input', applyFilters);
+    document.getElementById('statusFilter').addEventListener('change', applyFilters);
+
+    async function endSitin(id) {
+      await fetch(API + '/admin/sitin/' + id + '/end', { method: 'POST', credentials: 'include' });
+      showToast('Sit-in ended.');
+      loadRecords();
+    }
+
+    async function deleteRecord(id) {
+      if (!confirm('Delete this record?')) return;
+      await fetch(API + '/admin/sitin/' + id, { method: 'DELETE', credentials: 'include' });
+      showToast('Record deleted.');
+      loadRecords();
+    }
+
+    // ── HELPERS ───────────────────────────────────────────
+    function getTimestamp() {
+      return new Date().toLocaleDateString('en-PH', {
+        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+    }
+    function getFilename(ext) {
+      const d     = new Date();
+      const stamp = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      const tag   = document.getElementById('statusFilter').value;
+      return `SitIn_Records_${tag === 'all' ? 'All' : tag}_${stamp}.${ext}`;
+    }
+    function getTableRows() {
+      return filteredRecords.map((r, i) => [
+        String(i + 1), r.id_number || '—', r.fullname || '—',
+        r.purpose || '—', r.lab || '—', String(r.session ?? '—'),
+        r.status || '—', formatDate(r.created)
+      ]);
+    }
+
+    // ── DROPDOWN ──────────────────────────────────────────
+    function toggleExportMenu() {
+      document.getElementById('exportMenu').classList.toggle('open');
+      document.getElementById('exportBtn').classList.toggle('open');
+    }
+    function closeExportMenu() {
+      document.getElementById('exportMenu').classList.remove('open');
+      document.getElementById('exportBtn').classList.remove('open');
+    }
+    document.addEventListener('click', e => {
+      if (!document.getElementById('exportWrap').contains(e.target)) closeExportMenu();
+    });
+
+    // ── PDF ────────────────────────────────────────────────
+    function exportPDF() {
+      closeExportMenu();
+      if (!filteredRecords.length) { showToast('No records to export.', 'error'); return; }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
+      const pw  = doc.internal.pageSize.width;
+
+      doc.setFillColor(13, 59, 122);
+      doc.rect(0, 0, pw, 56, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(255,255,255);
+      doc.text('College of Computer Studies', 40, 24);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
+      doc.text('Sit-in Monitoring System — Records Report', 40, 40);
+      doc.setFontSize(9); doc.setTextColor(200, 220, 255);
+      doc.text(`Generated: ${getTimestamp()}`, pw - 40, 24, { align: 'right' });
+      doc.text(`Total Records: ${filteredRecords.length}`, pw - 40, 38, { align: 'right' });
+
+      doc.autoTable({
+        head: [['#','ID Number','Name','Purpose','Laboratory','Session No.','Status','Date']],
+        body: getTableRows(),
+        startY: 68,
+        styles: { font:'helvetica', fontSize:9, cellPadding:6, textColor:[30,40,60], lineColor:[200,210,230], lineWidth:0.3 },
+        headStyles: { fillColor:[91,45,142], textColor:[255,255,255], fontStyle:'bold', fontSize:9 },
+        alternateRowStyles: { fillColor:[245,248,255] },
+        columnStyles: {
+          0: { cellWidth:28, halign:'center' },
+          5: { cellWidth:70, halign:'center' },
+          6: { cellWidth:55, halign:'center' },
+          7: { cellWidth:85 }
+        },
+        foot: [[{ content:`Total: ${filteredRecords.length} record(s)`, colSpan:8,
+          styles:{ halign:'right', fontStyle:'bold', fillColor:[230,235,250], textColor:[30,40,60] } }]],
+        margin: { left:40, right:40 },
+      });
+
+      const pc = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pc; i++) {
+        doc.setPage(i); doc.setFontSize(8); doc.setTextColor(150);
+        doc.text(`Page ${i} of ${pc}`, pw / 2, doc.internal.pageSize.height - 16, { align:'center' });
+      }
+      doc.save(getFilename('pdf'));
+      showToast('PDF report downloaded!');
+    }
+
+    // ── CSV ────────────────────────────────────────────────
+    function exportCSV() {
+      closeExportMenu();
+      if (!filteredRecords.length) { showToast('No records to export.', 'error'); return; }
+      const esc  = v => `"${String(v).replace(/"/g,'""')}"`;
+      const hdrs = ['#','ID Number','Full Name','Purpose','Laboratory','Session No.','Status','Date'];
+      const lines = [
+        `# CCS Sit-in Monitoring System - Records Report`,
+        `# Generated: ${getTimestamp()}`,
+        `# Total Records: ${filteredRecords.length}`,
+        '',
+        hdrs.map(esc).join(','),
+        ...getTableRows().map(r => r.map(esc).join(','))
+      ];
+      const blob = new Blob([lines.join('\r\n')], { type:'text/csv;charset=utf-8;' });
+      const url  = URL.createObjectURL(blob);
+      Object.assign(document.createElement('a'), { href:url, download:getFilename('csv') }).click();
+      URL.revokeObjectURL(url);
+      showToast('CSV report downloaded!');
+    }
+
+    // ── DOCX (JSZip + raw OOXML) ───────────────────────────
+    async function exportDOCX() {
+      closeExportMenu();
+      if (!filteredRecords.length) { showToast('No records to export.', 'error'); return; }
+      showToast('Generating Word document...');
+
+      const x = s => String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+      const cols   = ['#','ID Number','Full Name','Purpose','Laboratory','Session No.','Status','Date'];
+      const widths = [500, 1000, 2000, 1500, 1200, 1000, 900, 1200];
+      const total  = widths.reduce((a,b)=>a+b,0);
+      const rows   = getTableRows();
+
+      const hCell = (text, w) =>
+        `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>
+          <w:shd w:val="clear" w:color="auto" w:fill="5B2D8E"/>
+          <w:tcMar><w:top w:w="80" w:type="dxa"/><w:bottom w:w="80" w:type="dxa"/><w:left w:w="120" w:type="dxa"/><w:right w:w="120" w:type="dxa"/></w:tcMar>
+        </w:tcPr>
+        <w:p><w:pPr><w:jc w:val="center"/></w:pPr>
+          <w:r><w:rPr><w:b/><w:color w:val="FFFFFF"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr>
+            <w:t>${x(text)}</w:t></w:r></w:p></w:tc>`;
+
+      const dCell = (text, w, ri, ci) => {
+        const fill  = ri % 2 === 0 ? 'FFFFFF' : 'EEF2FF';
+        const color = ci === 6 ? (filteredRecords[ri]?.status === 'Active' ? '16A34A' : '64748B') : '1E2840';
+        const align = (ci === 0 || ci === 5) ? 'center' : 'left';
+        return `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>
+          <w:shd w:val="clear" w:color="auto" w:fill="${fill}"/>
+          <w:tcMar><w:top w:w="80" w:type="dxa"/><w:bottom w:w="80" w:type="dxa"/><w:left w:w="120" w:type="dxa"/><w:right w:w="120" w:type="dxa"/></w:tcMar>
+        </w:tcPr>
+        <w:p><w:pPr><w:jc w:val="${align}"/></w:pPr>
+          <w:r><w:rPr><w:color w:val="${color}"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr>
+            <w:t xml:space="preserve">${x(text)}</w:t></w:r></w:p></w:tc>`;
+      };
+
+      const headerRow  = `<w:tr><w:trPr><w:tblHeader/></w:trPr>${cols.map((c,i)=>hCell(c,widths[i])).join('')}</w:tr>`;
+      const dataRows   = rows.map((row,ri)=>`<w:tr>${row.map((cell,ci)=>dCell(cell,widths[ci],ri,ci)).join('')}</w:tr>`).join('');
+      const footerRow  = `<w:tr><w:tc><w:tcPr><w:tcW w:w="${total}" w:type="dxa"/><w:gridSpan w:val="8"/>
+        <w:shd w:val="clear" w:color="auto" w:fill="E0E7FF"/></w:tcPr>
+        <w:p><w:pPr><w:jc w:val="right"/></w:pPr>
+          <w:r><w:rPr><w:b/><w:color w:val="1E2840"/><w:sz w:val="18"/></w:rPr>
+            <w:t>Total Records: ${filteredRecords.length}</w:t></w:r></w:p></w:tc></w:tr>`;
+
+      const docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:body>
+<w:p><w:pPr><w:spacing w:after="60"/></w:pPr>
+  <w:r><w:rPr><w:b/><w:color w:val="0D3B7A"/><w:sz w:val="32"/><w:szCs w:val="32"/></w:rPr>
+    <w:t>College of Computer Studies</w:t></w:r></w:p>
+<w:p><w:pPr><w:spacing w:after="60"/></w:pPr>
+  <w:r><w:rPr><w:color w:val="5B2D8E"/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr>
+    <w:t>Sit-in Monitoring System &#x2014; Records Report</w:t></w:r></w:p>
+<w:p><w:pPr><w:spacing w:after="240"/>
+  <w:pBdr><w:bottom w:val="single" w:sz="4" w:space="1" w:color="5B2D8E"/></w:pBdr></w:pPr>
+  <w:r><w:rPr><w:color w:val="7A9BBF"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr>
+    <w:t xml:space="preserve">Generated: ${x(getTimestamp())}     |     Total Records: ${filteredRecords.length}</w:t></w:r></w:p>
+<w:tbl>
+  <w:tblPr>
+    <w:tblW w:w="${total}" w:type="dxa"/>
+    <w:tblBorders>
+      <w:top w:val="single" w:sz="2" w:space="0" w:color="C8D2E6"/>
+      <w:left w:val="single" w:sz="2" w:space="0" w:color="C8D2E6"/>
+      <w:bottom w:val="single" w:sz="2" w:space="0" w:color="C8D2E6"/>
+      <w:right w:val="single" w:sz="2" w:space="0" w:color="C8D2E6"/>
+      <w:insideH w:val="single" w:sz="2" w:space="0" w:color="C8D2E6"/>
+      <w:insideV w:val="single" w:sz="2" w:space="0" w:color="C8D2E6"/>
+    </w:tblBorders>
+  </w:tblPr>
+  <w:tblGrid>${widths.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>
+  ${headerRow}${dataRows}${footerRow}
+</w:tbl>
+<w:p><w:pPr><w:spacing w:before="200"/></w:pPr>
+  <w:r><w:rPr><w:i/><w:color w:val="AAAAAA"/><w:sz w:val="16"/><w:szCs w:val="16"/></w:rPr>
+    <w:t>University of Cebu &#x2014; College of Computer Studies. This report was generated automatically.</w:t></w:r></w:p>
+<w:sectPr>
+  <w:pgSz w:w="15840" w:h="12240" w:orient="landscape"/>
+  <w:pgMar w:top="1080" w:right="1080" w:bottom="1080" w:left="1080" w:header="720" w:footer="720" w:gutter="0"/>
+</w:sectPr>
+</w:body></w:document>`;
+
+      try {
+        const zip = new JSZip();
+        zip.file('[Content_Types].xml',
+          `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+  <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+</Types>`);
+        zip.file('_rels/.rels',
+          `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`);
+        zip.file('word/document.xml', docXml);
+        zip.file('word/styles.xml',
+          `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:docDefaults><w:rPrDefault><w:rPr>
+    <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
+    <w:sz w:val="22"/><w:szCs w:val="22"/>
+  </w:rPr></w:rPrDefault></w:docDefaults>
+</w:styles>`);
+        zip.file('word/_rels/document.xml.rels',
+          `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+</Relationships>`);
+
+        const blob = await zip.generateAsync({
+          type: 'blob',
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        });
+        const url = URL.createObjectURL(blob);
+        Object.assign(document.createElement('a'), { href: url, download: getFilename('docx') }).click();
+        URL.revokeObjectURL(url);
+        showToast('Word document downloaded!');
+      } catch(err) {
+        console.error(err);
+        showToast('Failed to generate Word document.', 'error');
+      }
+    }
+
+    loadRecords();
+  </script>
+</body>
+</html>

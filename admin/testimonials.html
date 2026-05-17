@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS Admin | Testimonials</title>
+  <link rel="stylesheet" href="../css/admin.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    .testi-admin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .testi-admin-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .testi-admin-card.pending { border-left: 4px solid #f59e0b; }
+    .testi-admin-card.approved { border-left: 4px solid #22c55e; }
+
+    .tac-stars { font-size: 16px; color: #f59e0b; letter-spacing: 1px; }
+    .tac-msg {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.65;
+      font-style: italic;
+    }
+    .tac-author { font-size: 13px; font-weight: 700; color: var(--text); }
+    .tac-course { font-size: 11px; color: var(--text-muted); }
+    .tac-date   { font-size: 11px; color: var(--text-muted); }
+    .tac-status {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 20px;
+      width: fit-content;
+    }
+    .tac-status.pending  { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .tac-status.approved { background: rgba(34,197,94,0.15);  color: #4ade80; }
+
+    .tac-actions { display: flex; gap: 8px; margin-top: 4px; }
+    .btn-approve {
+      padding: 5px 14px;
+      background: rgba(34,197,94,0.12);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #4ade80;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-approve:hover { background: rgba(34,197,94,0.22); }
+
+    .testi-empty {
+      color: var(--text-muted);
+      font-size: 14px;
+      text-align: center;
+      padding: 60px 0;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .filter-tab {
+      padding: 6px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+    }
+    .filter-tab.active, .filter-tab:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="admin-navbar">
+    <div class="admin-nav-brand">
+      <img src="../images/uclogo.png" alt="UC"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS"/>
+      College of Computer Studies Admin
+    </div>
+    <ul class="admin-nav-links">
+      <li><a href="home.html">Home</a></li>
+      <li><a href="search.html">Search</a></li>
+      <li><a href="students.html">Students</a></li>
+      <li><a href="sitin.html">Sit-in</a></li>
+      <li><a href="sitin-records.html">View Sit-in Records</a></li>
+      <li><a href="feedback.html">Feedback</a></li>
+      <li><a href="reservations.html">Reservations</a></li>
+      <li><a href="testimonials.html" class="active">Testimonials</a></li>
+    </ul>
+    <button class="admin-logout-btn" onclick="adminLogout()">Log out</button>
+  </nav>
+
+  <div class="admin-main">
+    <div class="admin-page-title">Student Testimonials</div>
+
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="filterTestimonials('all', this)">All</button>
+      <button class="filter-tab" onclick="filterTestimonials('pending', this)">⏳ Pending</button>
+      <button class="filter-tab" onclick="filterTestimonials('approved', this)">✅ Approved</button>
+    </div>
+
+    <div id="testi-grid" class="testi-admin-grid">
+      <div class="testi-empty">Loading testimonials...</div>
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>
+    requireAdmin();
+    setActiveNav();
+
+    const API_BASE = 'http://127.0.0.1:5000/api';
+    let allTestimonials = [];
+    let currentFilter   = 'all';
+
+    function formatDate(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    async function loadTestimonials() {
+      try {
+        const res  = await fetch(API_BASE + '/admin/testimonials', { credentials: 'include' });
+        allTestimonials = await res.json();
+        renderGrid();
+      } catch {
+        document.getElementById('testi-grid').innerHTML =
+          '<div class="testi-empty">Could not load testimonials.</div>';
+      }
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('testi-grid');
+      let list = allTestimonials;
+
+      if (currentFilter === 'pending')  list = list.filter(t => !t.is_approved);
+      if (currentFilter === 'approved') list = list.filter(t =>  t.is_approved);
+
+      if (!list.length) {
+        grid.innerHTML = `<div class="testi-empty">No ${currentFilter === 'all' ? '' : currentFilter} testimonials.</div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map(t => `
+        <div class="testi-admin-card ${t.is_approved ? 'approved' : 'pending'}" id="tac-${t.id}">
+          <div class="tac-stars">${'★'.repeat(t.rating)}${'☆'.repeat(5 - t.rating)}</div>
+          <div class="tac-msg">"${t.message}"</div>
+          <div class="tac-author">${t.fullname || '—'}</div>
+          <div class="tac-course">${t.course || ''}</div>
+          <div class="tac-date">${formatDate(t.created)}</div>
+          <div class="tac-status ${t.is_approved ? 'approved' : 'pending'}">${t.is_approved ? '✅ Approved' : '⏳ Pending'}</div>
+          <div class="tac-actions">
+            ${!t.is_approved ? `<button class="btn-approve" onclick="approve(${t.id})">✅ Approve</button>` : ''}
+            <button class="btn-danger" style="padding:5px 14px;font-size:12px;" onclick="reject(${t.id})">🗑 Delete</button>
+          </div>
+        </div>`).join('');
+    }
+
+    function filterTestimonials(filter, el) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      renderGrid();
+    }
+
+    async function approve(tid) {
+      try {
+        await fetch(`${API_BASE}/admin/testimonials/${tid}/approve`, { method: 'POST', credentials: 'include' });
+        const card = document.getElementById('tac-' + tid);
+        const t = allTestimonials.find(x => x.id === tid);
+        if (t) t.is_approved = 1;
+        showToast('Testimonial approved!');
+        renderGrid();
+      } catch { showToast('Error approving.', 'error'); }
+    }
+
+    async function reject(tid) {
+      if (!confirm('Delete this testimonial?')) return;
+      try {
+        await fetch(`${API_BASE}/admin/testimonials/${tid}/reject`, { method: 'POST', credentials: 'include' });
+        allTestimonials = allTestimonials.filter(t => t.id !== tid);
+        showToast('Testimonial deleted.');
+        renderGrid();
+      } catch { showToast('Error deleting.', 'error'); }
+    }
+
+    loadTestimonials();
+  </script>
+</body>
+</html>

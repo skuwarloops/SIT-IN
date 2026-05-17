@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin | Analytics & Reports</title>
+  <link rel="stylesheet" href="../css/landing.css">
+  <link rel="stylesheet" href="../css/darkmode.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+    .admin-container {
+      max-width: 1400px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 1rem;
+    }
+
+    .admin-header h2 {
+      margin: 0;
+      color: var(--primary-color, #2c3e50);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid #ecf0f1;
+    }
+
+    .tab-button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 16px;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+      color: var(--text-light);
+    }
+
+    .tab-button.active {
+      border-bottom-color: #3498db;
+      color: #3498db;
+      font-weight: 600;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-box {
+      padding: 1.5rem;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-left: 4px solid #3498db;
+    }
+
+    .stat-box h4 {
+      margin: 0 0 0.5rem 0;
+      color: var(--text-light);
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+
+    .stat-box .value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #3498db;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .chart-container {
+      background: var(--bg-secondary);
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: relative;
+      height: 400px;
+    }
+
+    .chart-container h4 {
+      margin: 0 0 1rem 0;
+      color: var(--primary-color);
+    }
+
+    .chart-wrapper {
+      position: relative;
+      height: 100%;
+    }
+
+    .filters {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .filter-group label {
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+
+    .filter-group input,
+    .filter-group select {
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: var(--bg-color);
+      color: var(--primary-color);
+    }
+
+    body.dark-mode .filter-group input,
+    body.dark-mode .filter-group select {
+      background: var(--bg-secondary);
+      color: var(--text-color);
+      border-color: var(--border-color);
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background-color: #3498db;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #2980b9;
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-secondary);
+      color: var(--primary-color);
+      border: 1px solid #3498db;
+    }
+
+    .btn-secondary:hover {
+      background-color: #3498db;
+      color: white;
+    }
+
+    .btn-danger {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: #c0392b;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-color);
+    }
+
+    thead {
+      background-color: #34495e;
+      color: white;
+    }
+
+    th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #ecf0f1;
+    }
+
+    tbody tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    body.dark-mode tbody tr:hover {
+      background-color: rgba(52, 152, 219, 0.1);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-success {
+      background-color: #27ae60;
+      color: white;
+    }
+
+    .badge-warning {
+      background-color: #f39c12;
+      color: white;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-light);
+    }
+
+    .software-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .software-item {
+      padding: 1rem;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      border-left: 4px solid #3498db;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .software-info h4 {
+      margin: 0 0 0.25rem 0;
+      color: var(--primary-color);
+    }
+
+    .software-info p {
+      margin: 0.25rem 0;
+      font-size: 14px;
+      color: var(--text-light);
+    }
+
+    .recommendations-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 1rem;
+    }
+
+    .recommendations-list li {
+      padding: 0.75rem;
+      background: var(--bg-secondary);
+      margin: 0.5rem 0;
+      border-left: 4px solid #f39c12;
+      border-radius: 4px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-light);
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img src="../images/uclogo.png" alt="UC Logo" class="nav-logo">
+      <img src="../images/ccsmainlogo.png" alt="CCS Logo" class="nav-logo">
+      <span class="nav-title">CCS Admin - Analytics & Reports</span>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/admin/home.html" class="nav-link">Home</a></li>
+      <li><a href="/admin/students.html" class="nav-link">Students</a></li>
+      <li><a href="/admin/sitin-records.html" class="nav-link">Records</a></li>
+      <li><a href="analytics.html" class="nav-link active">Analytics</a></li>
+      <li id="nav-auth-user" style="display:none;">
+        <div class="nav-user">
+          <div class="nav-user-avatar" id="nav-avatar">A</div>
+          <span id="nav-username">Admin</span>
+        </div>
+      </li>
+      <li id="nav-auth-logout" style="display:none;">
+        <button class="logout-btn" id="logout-btn">Logout</button>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="admin-container">
+    <div class="admin-header">
+      <h2>📊 Analytics & Reports</h2>
+      <button class="btn btn-primary" onclick="downloadReport()">📥 Download Report</button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-button active" onclick="switchTab('analytics')">Analytics</button>
+      <button class="tab-button" onclick="switchTab('software')">Software Management</button>
+      <button class="tab-button" onclick="switchTab('reports')">Reports</button>
+    </div>
+
+    <!-- Analytics Tab -->
+    <div id="analytics" class="tab-content active">
+      <div class="filters">
+        <div class="filter-group">
+          <label>Filter by Days:</label>
+          <select id="daysFilter" onchange="loadAnalytics()">
+            <option value="7">Last 7 Days</option>
+            <option value="30" selected>Last 30 Days</option>
+            <option value="60">Last 60 Days</option>
+            <option value="90">Last 90 Days</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="stat-grid">
+        <div class="stat-box">
+          <h4>Total Sessions</h4>
+          <div class="value" id="stat-total">-</div>
+        </div>
+        <div class="stat-box">
+          <h4>Active Students</h4>
+          <div class="value" id="stat-students">-</div>
+        </div>
+        <div class="stat-box">
+          <h4>Avg Duration</h4>
+          <div class="value" id="stat-avg">-<span style="font-size:14px;"> min</span></div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-grid">
+        <div class="chart-container">
+          <h4>Peak Hours</h4>
+          <div class="chart-wrapper">
+            <canvas id="peakHoursChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-container">
+          <h4>Peak Days</h4>
+          <div class="chart-wrapper">
+            <canvas id="peakDaysChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-container">
+          <h4>Lab Utilization</h4>
+          <div class="chart-wrapper">
+            <canvas id="labUtilChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div id="analytics-loading" class="loading" style="display:none;">
+        <div class="spinner"></div>
+        <p>Loading analytics...</p>
+      </div>
+    </div>
+
+    <!-- Software Management Tab -->
+    <div id="software" class="tab-content">
+      <div style="margin-bottom: 2rem;">
+        <button class="btn btn-primary" onclick="openAddSoftwareModal()">➕ Add Software</button>
+      </div>
+
+      <div id="software-list" class="software-list"></div>
+      <div id="software-loading" class="loading" style="display:none;">
+        <div class="spinner"></div>
+        <p>Loading software...</p>
+      </div>
+    </div>
+
+    <!-- Reports Tab -->
+    <div id="reports" class="tab-content">
+      <div class="filters">
+        <div class="filter-group">
+          <label>From:</label>
+          <input type="date" id="reportFromDate">
+        </div>
+        <div class="filter-group">
+          <label>To:</label>
+          <input type="date" id="reportToDate">
+        </div>
+        <div class="filter-group">
+          <label>Lab:</label>
+          <select id="reportLabFilter">
+            <option value="">All Labs</option>
+            <option value="Lab 1">Lab 1</option>
+            <option value="Lab 2">Lab 2</option>
+            <option value="Lab 3">Lab 3</option>
+            <option value="Lab 4">Lab 4</option>
+            <option value="Lab 5">Lab 5</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="generateReport()">Generate CSV Report</button>
+      </div>
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Report ID</th>
+              <th>Type</th>
+              <th>Date Range</th>
+              <th>Generated</th>
+            </tr>
+          </thead>
+          <tbody id="reports-table">
+            <tr>
+              <td colspan="4" class="empty-state">No reports generated yet</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Software Modal -->
+  <div id="addSoftwareModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000;">
+    <div style="background:var(--bg-color); margin:5rem auto; width:90%; max-width:500px; padding:2rem; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.2);">
+      <h3>Add Software Application</h3>
+      <form onsubmit="submitAddSoftware(event)">
+        <div style="margin:1rem 0;">
+          <label>Software Name:</label>
+          <input type="text" id="softwareName" required style="width:100%; padding:0.5rem; border:1px solid #ddd; border-radius:4px;">
+        </div>
+        <div style="margin:1rem 0;">
+          <label>Lab:</label>
+          <select id="softwareLab" style="width:100%; padding:0.5rem; border:1px solid #ddd; border-radius:4px;">
+            <option value="">All Labs</option>
+            <option value="Lab 1">Lab 1</option>
+            <option value="Lab 2">Lab 2</option>
+            <option value="Lab 3">Lab 3</option>
+            <option value="Lab 4">Lab 4</option>
+            <option value="Lab 5">Lab 5</option>
+          </select>
+        </div>
+        <div style="margin:1rem 0;">
+          <label>Version:</label>
+          <input type="text" id="softwareVersion" style="width:100%; padding:0.5rem; border:1px solid #ddd; border-radius:4px;">
+        </div>
+        <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+          <button type="submit" class="btn btn-primary" style="flex:1;">Add Software</button>
+          <button type="button" class="btn btn-secondary" onclick="closeModal('addSoftwareModal')" style="flex:1;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer" style="margin-top:3rem;">
+    <p>© 2026 University of Cebu — College of Computer Studies. All rights reserved.</p>
+  </footer>
+
+  <script src="/js/darkmode.js"></script>
+  <script>
+    let charts = {};
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+      document.getElementById(tab).classList.add('active');
+      event.target.classList.add('active');
+
+      if (tab === 'analytics') loadAnalytics();
+      if (tab === 'software') loadSoftware();
+      if (tab === 'reports') loadReports();
+    }
+
+    async function loadAnalytics() {
+      const days = document.getElementById('daysFilter').value;
+      const loading = document.getElementById('analytics-loading');
+      loading.style.display = 'block';
+
+      try {
+        const response = await fetch(`/api/admin/analytics?days=${days}`, {
+          credentials: 'include'
+        });
+        const data = await response.json();
+
+        document.getElementById('stat-total').textContent = data.total_sessions;
+        document.getElementById('stat-students').textContent = data.unique_students;
+        document.getElementById('stat-avg').textContent = data.avg_duration_minutes;
+
+        // Peak Hours Chart
+        const peakHours = data.peak_hours.map(h => ({ hour: h.hour + ':00', count: h.count }));
+        drawChart('peakHoursChart', 'Peak Hours', peakHours.map(h => h.hour), peakHours.map(h => h.count), 'bar');
+
+        // Peak Days Chart
+        const peakDays = data.peak_days;
+        drawChart('peakDaysChart', 'Peak Days', peakDays.map(d => d.day), peakDays.map(d => d.count), 'bar');
+
+        // Lab Utilization Chart
+        const labs = data.lab_utilization;
+        drawChart('labUtilChart', 'Lab Utilization', labs.map(l => l.lab), labs.map(l => l.sessions), 'doughnut');
+
+        loading.style.display = 'none';
+      } catch (error) {
+        console.error('Error loading analytics:', error);
+        loading.innerHTML = '<p>Error loading analytics</p>';
+      }
+    }
+
+    function drawChart(canvasId, label, labels, data, type) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      
+      if (charts[canvasId]) {
+        charts[canvasId].destroy();
+      }
+
+      charts[canvasId] = new Chart(ctx, {
+        type: type,
+        data: {
+          labels: labels,
+          datasets: [{
+            label: label,
+            data: data,
+            backgroundColor: '#3498db',
+            borderColor: '#2980b9',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+          }
+        }
+      });
+    }
+
+    async function loadSoftware() {
+      const loading = document.getElementById('software-loading');
+      const container = document.getElementById('software-list');
+      loading.style.display = 'block';
+
+      try {
+        const response = await fetch('/api/admin/software', {
+          credentials: 'include'
+        });
+        const software = await response.json();
+        loading.style.display = 'none';
+
+        if (!software || software.length === 0) {
+          container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;">No software added yet</div>';
+          return;
+        }
+
+        container.innerHTML = software.map(s => `
+          <div class="software-item">
+            <div class="software-info">
+              <h4>${s.name}</h4>
+              <p>${s.lab_id || 'All Labs'}</p>
+              <p>Version: ${s.version || 'N/A'}</p>
+            </div>
+            <div>
+              <select onchange="updateSoftwareAvailability(${s.id}, this.value)" style="padding:0.5rem;">
+                <option value="available" ${s.availability === 'available' ? 'selected' : ''}>Available</option>
+                <option value="unavailable" ${s.availability === 'unavailable' ? 'selected' : ''}>Unavailable</option>
+              </select>
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Error loading software:', error);
+        loading.innerHTML = '<p>Error loading software</p>';
+      }
+    }
+
+    async function updateSoftwareAvailability(id, availability) {
+      try {
+        await fetch(`/api/admin/software/${id}`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ availability })
+        });
+        loadSoftware();
+      } catch (error) {
+        console.error('Error updating software:', error);
+      }
+    }
+
+    function openAddSoftwareModal() {
+      document.getElementById('addSoftwareModal').style.display = 'block';
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    async function submitAddSoftware(event) {
+      event.preventDefault();
+      try {
+        await fetch('/api/admin/software', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: document.getElementById('softwareName').value,
+            lab_id: document.getElementById('softwareLab').value,
+            version: document.getElementById('softwareVersion').value
+          })
+        });
+        closeModal('addSoftwareModal');
+        loadSoftware();
+      } catch (error) {
+        console.error('Error adding software:', error);
+        alert('Error adding software');
+      }
+    }
+
+    async function loadReports() {
+      try {
+        const response = await fetch('/api/admin/reports/list', {
+          credentials: 'include'
+        });
+        const reports = await response.json();
+        const tbody = document.getElementById('reports-table');
+
+        if (!reports || reports.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No reports generated yet</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = reports.map(r => `
+          <tr>
+            <td>#${r.id}</td>
+            <td><span class="badge badge-success">${r.type.toUpperCase()}</span></td>
+            <td>${r.date_range}</td>
+            <td>${r.created.substr(0, 10)}</td>
+          </tr>
+        `).join('');
+      } catch (error) {
+        console.error('Error loading reports:', error);
+      }
+    }
+
+    async function generateReport() {
+      const dateFrom = document.getElementById('reportFromDate').value;
+      const dateTo = document.getElementById('reportToDate').value;
+      const lab = document.getElementById('reportLabFilter').value;
+
+      if (!dateFrom || !dateTo) {
+        alert('Please select date range');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/admin/reports/generate', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            format: 'csv',
+            date_from: dateFrom,
+            date_to: dateTo,
+            lab: lab
+          })
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `sit-in-report-${new Date().toISOString().split('T')[0]}.csv`;
+          a.click();
+          window.URL.revokeObjectURL(url);
+          loadReports();
+        }
+      } catch (error) {
+        console.error('Error generating report:', error);
+        alert('Error generating report');
+      }
+    }
+
+    function downloadReport() {
+      generateReport();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const admin = JSON.parse(localStorage.getItem('ccs_admin') || '{}');
+      if (!admin.id) {
+        window.location.href = '/login-register/admin-login.html';
+        return;
+      }
+
+      document.getElementById('nav-username').textContent = admin.username;
+      document.getElementById('nav-avatar').textContent = admin.username.charAt(0).toUpperCase();
+      document.getElementById('nav-auth-user').style.display = 'list-item';
+      document.getElementById('nav-auth-logout').style.display = 'list-item';
+
+      loadAnalytics();
+
+      document.getElementById('logout-btn')?.addEventListener('click', async () => {
+        await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' });
+        localStorage.removeItem('ccs_admin');
+        window.location.href = '/login-register/admin-login.html';
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS Admin | Search</title>
+  <link rel="stylesheet" href="../css/admin.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav class="admin-navbar">
+    <div class="admin-nav-brand">
+      <img src="../images/uclogo.png" alt="UC"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS"/>
+      College of Computer Studies Admin
+    </div>
+    <ul class="admin-nav-links">
+      <li><a href="home.html">Home</a></li>
+      <li><a href="search.html" class="active">Search</a></li>
+      <li><a href="students.html">Students</a></li>
+      <li><a href="sitin.html">Sit-in</a></li>
+      <li><a href="sitin-records.html">View Sit-in Records</a></li>
+      <li><a href="feedback.html" class="active">Feedback</a></li>
+      <li><a href="/admin/reservations.html" class="active">Reservations</a></li>
+      <li><a href="testimonials.html">Testimonials</a></li>
+    </ul>
+    <button class="admin-logout-btn" onclick="adminLogout()">Log out</button>
+  </nav>
+
+  <div class="admin-main">
+    <div class="admin-page-title">Search Student</div>
+
+    <div class="admin-panel" style="max-width:600px;">
+      <div class="admin-panel-header">
+        <h3>🔍 Search Student</h3>
+      </div>
+      <div class="admin-panel-body">
+        <div style="display:flex;gap:10px;margin-bottom:20px;">
+          <input type="text" id="search-input" placeholder="Search by name, ID number, or email..."
+            style="flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--card-border);border-radius:8px;padding:11px 14px;color:var(--text);font-family:inherit;font-size:14px;outline:none;"
+            onkeydown="if(event.key==='Enter') doSearch()"/>
+          <button class="btn-primary" onclick="doSearch()">Search</button>
+        </div>
+        <div id="search-results">
+          <div style="color:var(--muted);font-size:13px;text-align:center;padding:24px 0;">
+            Enter a name or ID number to search.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>
+    requireAdmin();
+
+    async function doSearch() {
+      const q = document.getElementById('search-input').value.trim();
+      if (!q) return;
+      const resultsEl = document.getElementById('search-results');
+      resultsEl.innerHTML = '<div style="color:var(--muted);font-size:13px;">Searching...</div>';
+      try {
+        const res  = await fetch(API + '/admin/students/search?q=' + encodeURIComponent(q), { credentials: 'include' });
+        const data = await res.json();
+        const students = data.students || [];
+        if (students.length === 0) {
+          resultsEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:24px 0;">No students found.</div>';
+          return;
+        }
+        resultsEl.innerHTML = `
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID Number</th>
+                  <th>Name</th>
+                  <th>Year Level</th>
+                  <th>Course</th>
+                  <th>Remaining Sessions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${students.map(s => `
+                  <tr>
+                    <td>${s.id_number || '—'}</td>
+                    <td>${s.fullname}</td>
+                    <td>${s.level}</td>
+                    <td>${s.course}</td>
+                    <td>${s.remaining_session}</td>
+                  </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>`;
+      } catch { showToast('Server error.', 'error'); }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS | Admin Login</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <link rel="stylesheet" href="/css/auth.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <img src="/images/uclogo.png" alt="University of Cebu"/>
+      <div class="brand-divider"></div>
+      <img src="/images/ccsmainlogo.png" alt="College of Computer Studies"/>
+    </div>
+    <div class="brand-subtitle">CCS Admin Portal</div>
+
+    <form id="admin-login-form" novalidate>
+      <div id="server-err"></div>
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="username" placeholder="admin"/>
+        <span class="error" id="username-err"></span>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="••••••••"/>
+        <span class="error" id="password-err"></span>
+      </div>
+      <button type="submit" class="btn" id="login-btn">Login as Admin</button>
+      <p class="switch" style="text-align:center;margin-top:14px;">
+        <a href="/login-register/index.html">← Back to Student Login</a>
+      </p>
+    </form>
+  </div>
+
+  <script>
+    const API = 'http://127.0.0.1:5000/api';
+
+    document.getElementById('admin-login-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      document.getElementById('server-err').innerHTML = '';
+      document.getElementById('username-err').textContent = '';
+      document.getElementById('password-err').textContent = '';
+
+      const username = document.getElementById('username');
+      const password = document.getElementById('password');
+      let ok = true;
+
+      if (!username.value.trim()) {
+        document.getElementById('username-err').textContent = 'Username is required.';
+        username.classList.add('invalid'); ok = false;
+      }
+      if (!password.value) {
+        document.getElementById('password-err').textContent = 'Password is required.';
+        password.classList.add('invalid'); ok = false;
+      }
+      if (!ok) return;
+
+      const btn = document.getElementById('login-btn');
+      btn.disabled = true; btn.textContent = 'Please wait...';
+
+      try {
+        const res  = await fetch(API + '/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ username: username.value.trim(), password: password.value })
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem('ccs_admin', JSON.stringify(data.admin));
+          window.location.href = '/admin/home.html';
+        } else {
+          document.getElementById('server-err').innerHTML =
+            '<div class="server-error">' + data.message + '</div>';
+        }
+      } catch {
+        document.getElementById('server-err').innerHTML =
+          '<div class="server-error">Cannot connect to server. Make sure app.py is running.</div>';
+      }
+      btn.disabled = false; btn.textContent = 'Login as Admin';
+    });
+  </script>
+</body>
+</html>

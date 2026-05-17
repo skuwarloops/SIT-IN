@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS | Testimonials</title>
+  <link rel="stylesheet" href="/css/landing.css"/>
+  <link rel="stylesheet" href="/css/dashboard.css"/>
+  <link rel="stylesheet" href="/css/darkmode.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    .testi-wrap {
+      max-width: 960px;
+      margin: 36px auto;
+      padding: 0 24px 80px;
+    }
+    .testi-title {
+      font-family: 'Fraunces', serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .testi-sub {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+
+    /* ── Submit Form ── */
+    .testi-form-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 36px;
+    }
+    .testi-form-header {
+      background: linear-gradient(135deg, var(--navy-dark), var(--purple));
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 18px;
+    }
+    .testi-form-body { padding: 24px 20px; }
+
+    .star-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .star-btn {
+      font-size: 28px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--card-border);
+      transition: color 0.15s, transform 0.1s;
+      padding: 0;
+      line-height: 1;
+    }
+    .star-btn.active, .star-btn:hover { color: #f59e0b; transform: scale(1.15); }
+
+    .testi-textarea {
+      width: 100%;
+      min-height: 110px;
+      resize: vertical;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    .testi-textarea:focus { outline: none; border-color: var(--purple); }
+
+    .testi-submit-btn {
+      margin-top: 14px;
+      padding: 10px 28px;
+      background: linear-gradient(135deg, var(--navy-dark), var(--purple));
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .testi-submit-btn:hover { opacity: 0.88; }
+    .testi-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .testi-status {
+      margin-top: 12px;
+      font-size: 13px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      display: none;
+    }
+    .testi-status.success { background: rgba(34,197,94,0.12); color: #4ade80; display: block; }
+    .testi-status.error   { background: rgba(239,68,68,0.12);  color: #f87171; display: block; }
+    .testi-status.pending { background: rgba(251,191,36,0.12); color: #fbbf24; display: block; }
+
+    /* ── Public testimonials grid ── */
+    .testi-grid-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--card-border);
+    }
+    .testi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .testi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.18s;
+    }
+    .testi-card:hover { transform: translateY(-3px); }
+
+    .testi-card-stars { font-size: 18px; color: #f59e0b; letter-spacing: 2px; }
+    .testi-card-msg {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.65;
+      flex: 1;
+      font-style: italic;
+    }
+    .testi-card-author {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .testi-card-course {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: -6px;
+    }
+    .testi-empty {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      padding: 40px 0;
+      grid-column: 1 / -1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── NAVBAR ── -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img src="/images/uclogo.png" alt="UC Logo" class="nav-logo"/>
+      <img src="/images/ccsmainlogo.png" alt="CCS Logo" class="nav-logo"/>
+      <span class="nav-title">College of Computer Studies Sit-in Monitoring System</span>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/page/dashboard.html" class="nav-link">Home</a></li>
+      <li class="dropdown">
+        <a href="/page/community.html" class="nav-link dropdown-toggle" id="communityToggle">Community &#9660;</a>
+        <ul class="dropdown-menu" id="communityMenu">
+          <li><a href="/page/announcements.html">Announcements</a></li>
+          <li><a href="/page/resources.html">Resources</a></li>
+          <li><a href="/page/forums.html">Forums</a></li>
+        </ul>
+      </li>
+      <li><a href="/page/history.html" class="nav-link">History</a></li>
+      <li><a href="/page/reservation.html" class="nav-link">Reservation</a></li>
+      <li><a href="/page/testimonials.html" class="nav-link active">Testimonials</a></li>
+      <li class="dropdown" id="user-dropdown-li">
+        <a href="#" class="nav-link dropdown-toggle" id="userDropdownToggle" style="display:flex;align-items:center;gap:8px;">
+          <div class="nav-user-avatar" id="nav-avatar">?</div>
+          <span id="nav-username">Loading...</span>
+        </a>
+        <ul class="dropdown-menu" id="userDropdownMenu" style="right:0;left:auto;min-width:180px;">
+          <li><a href="/page/edit-profile.html">✏️ Edit Profile</a></li>
+        </ul>
+      </li>
+      <li><button class="logout-btn" id="logout-btn">Logout</button></li>
+    </ul>
+  </nav>
+
+  <!-- ── CONTENT ── -->
+  <div class="testi-wrap">
+    <div class="testi-title">⭐ Testimonials</div>
+    <div class="testi-sub">Share your experience using the CCS Sit-in Monitoring System.</div>
+
+    <!-- Submit Form -->
+    <div class="testi-form-card">
+      <div class="testi-form-header">✍️ Leave a Testimonial</div>
+      <div class="testi-form-body">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px;font-weight:600;">Your Rating</div>
+        <div class="star-row" id="star-row">
+          <button class="star-btn" data-val="1">★</button>
+          <button class="star-btn" data-val="2">★</button>
+          <button class="star-btn" data-val="3">★</button>
+          <button class="star-btn" data-val="4">★</button>
+          <button class="star-btn" data-val="5">★</button>
+        </div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:8px;font-weight:600;">Your Message</div>
+        <textarea class="testi-textarea" id="testi-msg" placeholder="Tell us about your experience..."></textarea>
+        <br/>
+        <button class="testi-submit-btn" id="testi-submit-btn">Submit Testimonial</button>
+        <div class="testi-status" id="testi-status"></div>
+      </div>
+    </div>
+
+    <!-- Public testimonials -->
+    <div class="testi-grid-title">💬 What Students Are Saying</div>
+    <div class="testi-grid" id="testi-grid">
+      <div class="testi-empty">Loading testimonials...</div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-logos">
+      <img src="/images/uclogo.png" alt="UC" class="footer-logo"/>
+      <img src="/images/ccsmainlogo.png" alt="CCS" class="footer-logo"/>
+    </div>
+    <p>&copy; 2026 University of Cebu &mdash; College of Computer Studies. All rights reserved.</p>
+  </footer>
+
+  <script src="/js/landing.js"></script>
+  <script src="/js/darkmode.js"></script>
+  <script>
+    const API = 'http://127.0.0.1:5000/api';
+
+    // ── Auth ──
+    const stored = localStorage.getItem('ccs_user');
+    if (!stored) window.location.href = '/login-register/index.html';
+    const user = JSON.parse(stored);
+    document.getElementById('nav-username').textContent = user.firstname || user.fullname;
+    document.getElementById('nav-avatar').textContent   = (user.lastname || user.fullname).charAt(0).toUpperCase();
+
+    // User dropdown
+    const udt = document.getElementById('userDropdownToggle');
+    const udm = document.getElementById('userDropdownMenu');
+    if (udt && udm) {
+      udt.addEventListener('click', e => { e.preventDefault(); udm.classList.toggle('open'); });
+      document.addEventListener('click', e => {
+        if (!udt.contains(e.target) && !udm.contains(e.target)) udm.classList.remove('open');
+      });
+    }
+
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      try { await fetch(API + '/logout', { method: 'POST', credentials: 'include' }); } catch {}
+      localStorage.removeItem('ccs_user');
+      window.location.href = '/login-register/index.html';
+    });
+
+    // ── Star Rating ──
+    let selectedRating = 0;
+    const starBtns = document.querySelectorAll('.star-btn');
+
+    starBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedRating = parseInt(btn.dataset.val);
+        renderStars(selectedRating);
+      });
+      btn.addEventListener('mouseenter', () => renderStars(parseInt(btn.dataset.val)));
+      btn.addEventListener('mouseleave', () => renderStars(selectedRating));
+    });
+
+    function renderStars(count) {
+      starBtns.forEach((b, i) => b.classList.toggle('active', i < count));
+    }
+
+    // ── Load my existing testimonial ──
+    async function loadMyTestimonial() {
+      try {
+        const res  = await fetch(API + '/student/testimonial', { credentials: 'include' });
+        const data = await res.json();
+        if (data.rating) {
+          selectedRating = data.rating;
+          renderStars(data.rating);
+          document.getElementById('testi-msg').value = data.message || '';
+          const statusEl = document.getElementById('testi-status');
+          if (data.is_approved) {
+            statusEl.textContent = '✅ Your testimonial has been approved and is visible below.';
+            statusEl.className = 'testi-status success';
+          } else {
+            statusEl.textContent = '⏳ Your testimonial is pending admin approval.';
+            statusEl.className = 'testi-status pending';
+          }
+        }
+      } catch {}
+    }
+
+    // ── Submit testimonial ──
+    document.getElementById('testi-submit-btn').addEventListener('click', async () => {
+      const btn     = document.getElementById('testi-submit-btn');
+      const statusEl = document.getElementById('testi-status');
+      const message  = document.getElementById('testi-msg').value.trim();
+
+      statusEl.className = 'testi-status';
+      statusEl.textContent = '';
+
+      if (!selectedRating) {
+        statusEl.textContent = 'Please select a star rating.';
+        statusEl.className = 'testi-status error';
+        return;
+      }
+      if (!message) {
+        statusEl.textContent = 'Please write a message.';
+        statusEl.className = 'testi-status error';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+
+      try {
+        const res  = await fetch(API + '/testimonials', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rating: selectedRating, message })
+        });
+        const data = await res.json();
+        if (data.success) {
+          statusEl.textContent = '⏳ ' + data.message;
+          statusEl.className = 'testi-status pending';
+        } else {
+          statusEl.textContent = data.error || 'Submission failed.';
+          statusEl.className = 'testi-status error';
+        }
+      } catch {
+        statusEl.textContent = 'Could not connect to server.';
+        statusEl.className = 'testi-status error';
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Submit Testimonial';
+    });
+
+    // ── Load public testimonials ──
+    async function loadPublicTestimonials() {
+      const grid = document.getElementById('testi-grid');
+      try {
+        const res  = await fetch(API + '/testimonials');
+        const data = await res.json();
+        if (!data.length) {
+          grid.innerHTML = '<div class="testi-empty">No approved testimonials yet. Be the first!</div>';
+          return;
+        }
+        grid.innerHTML = data.map(t => `
+          <div class="testi-card">
+            <div class="testi-card-stars">${'★'.repeat(t.rating)}${'☆'.repeat(5 - t.rating)}</div>
+            <div class="testi-card-msg">"${t.message}"</div>
+            <div class="testi-card-author">${t.fullname || 'Student'}</div>
+            <div class="testi-card-course">${t.course || ''}</div>
+          </div>`).join('');
+      } catch {
+        grid.innerHTML = '<div class="testi-empty">Could not load testimonials.</div>';
+      }
+    }
+
+    loadMyTestimonial();
+    loadPublicTestimonials();
+  </script>
+</body>
+</html>

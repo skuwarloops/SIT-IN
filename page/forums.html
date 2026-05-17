@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS | Forums</title>
+  <link rel="stylesheet" href="../css/landing.css"/>
+  <link rel="stylesheet" href="../css/community.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img src="../images/uclogo.png" alt="UC Logo" class="nav-logo"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS Logo" class="nav-logo"/>
+      <span class="nav-title">College of Computer Studies Sit-in Monitoring System</span>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/page/dashboard.html" class="nav-link">Home</a></li>
+      <li class="dropdown">
+        <a href="community.html" class="nav-link dropdown-toggle active" id="communityToggle">Community ▾</a>
+        <ul class="dropdown-menu" id="communityMenu">
+          <li><a href="announcements.html">Announcements</a></li>
+          <li><a href="resources.html">Resources</a></li>
+          <li><a href="forums.html" class="current">Forums</a></li>
+        </ul>
+      </li>
+      <li><a href="landingpage.html#about" class="nav-link">About</a></li>
+      <li><a href="../login-register/index.html" class="nav-link">Login</a></li>
+      <li><a href="../login-register/index.html" class="nav-btn">Register</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-hero">
+    <div class="page-hero-bg"></div>
+    <div class="page-hero-content">
+      <div class="breadcrumb"><a href="landingpage.html">Home</a> › <a href="#">Community</a> › Forums</div>
+      <h1>💬 Forums</h1>
+      <p>Ask questions, share tips, and connect with fellow CCS students and faculty members.</p>
+    </div>
+  </div>
+
+  <main class="community-main">
+    <div class="filter-bar">
+      <div class="filter-tabs">
+        <button class="ftab active" data-filter="all">All</button>
+        <button class="ftab" data-filter="question">Questions</button>
+        <button class="ftab" data-filter="discussion">Discussions</button>
+        <button class="ftab" data-filter="tip">Tips</button>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <input class="search-input" type="text" placeholder="🔍  Search threads…" id="announcementSearch"/>
+        <button class="post-btn" id="openModal">+ New Post</button>
+      </div>
+    </div>
+
+    <div class="forum-list" id="annList">
+      <div class="forum-thread" data-category="question">
+        <div class="thread-votes">
+          <button class="vote-btn">▲</button><span class="vote-count">12</span><button class="vote-btn down">▼</button>
+        </div>
+        <div class="thread-body">
+          <div class="ann-meta"><span class="ann-tag general">Question</span><span class="ann-date">Feb 26, 2026</span></div>
+          <h3>How do I extend my sit-in session if I need more time?</h3>
+          <p>I logged a 2-hour session but I finished earlier than expected and now need more time. Is there a way to extend it through the system, or do I need to log a new session?</p>
+          <div class="thread-footer">
+            <span class="thread-author">👤 Juan dela Cruz</span>
+            <span class="thread-replies">💬 4 replies</span>
+            <button class="ann-read reply-btn">Reply</button>
+          </div>
+          <div class="replies">
+            <div class="reply"><span class="reply-author">👤 Lab Admin</span><p>You can log a new sit-in session right after your current one ends. Just make sure the previous session is properly closed first.</p></div>
+            <div class="reply"><span class="reply-author">👤 Maria Santos</span><p>I had the same issue! Just close the current session and open a new one. Works fine.</p></div>
+          </div>
+          <div class="reply-form hidden">
+            <textarea placeholder="Write a reply…" rows="3"></textarea>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button class="ann-read submit-reply">Post Reply</button>
+              <button class="ann-read cancel-reply" style="background:transparent;border:1px solid var(--card-border);color:var(--muted);">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="forum-thread" data-category="discussion">
+        <div class="thread-votes">
+          <button class="vote-btn">▲</button><span class="vote-count">8</span><button class="vote-btn down">▼</button>
+        </div>
+        <div class="thread-body">
+          <div class="ann-meta"><span class="ann-tag schedule">Discussion</span><span class="ann-date">Feb 24, 2026</span></div>
+          <h3>What programming language do you recommend for beginners in CCS?</h3>
+          <p>I'm a 1st year IT student and I'm trying to decide which language to focus on outside of class. Python or JavaScript? Would love to hear from upperclassmen.</p>
+          <div class="thread-footer">
+            <span class="thread-author">👤 Ana Reyes</span>
+            <span class="thread-replies">💬 7 replies</span>
+            <button class="ann-read reply-btn">Reply</button>
+          </div>
+          <div class="replies">
+            <div class="reply"><span class="reply-author">👤 Prof. Mendoza</span><p>Python is excellent for beginners. The syntax is clean and it's used in many fields — data science, automation, web development.</p></div>
+          </div>
+          <div class="reply-form hidden">
+            <textarea placeholder="Write a reply…" rows="3"></textarea>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button class="ann-read submit-reply">Post Reply</button>
+              <button class="ann-read cancel-reply" style="background:transparent;border:1px solid var(--card-border);color:var(--muted);">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="forum-thread" data-category="tip">
+        <div class="thread-votes">
+          <button class="vote-btn">▲</button><span class="vote-count">21</span><button class="vote-btn down">▼</button>
+        </div>
+        <div class="thread-body">
+          <div class="ann-meta"><span class="ann-tag important">Tip</span><span class="ann-date">Feb 20, 2026</span></div>
+          <h3>Tip: Always close your session before leaving the lab!</h3>
+          <p>Reminder to everyone — if you leave without closing your sit-in session, it stays "Active" and wastes your allowed sit-in hours. Always hit the End Session button before you go!</p>
+          <div class="thread-footer">
+            <span class="thread-author">👤 Carlo Bautista</span>
+            <span class="thread-replies">💬 2 replies</span>
+            <button class="ann-read reply-btn">Reply</button>
+          </div>
+          <div class="replies"></div>
+          <div class="reply-form hidden">
+            <textarea placeholder="Write a reply…" rows="3"></textarea>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button class="ann-read submit-reply">Post Reply</button>
+              <button class="ann-read cancel-reply" style="background:transparent;border:1px solid var(--card-border);color:var(--muted);">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="empty-state hidden" id="emptyState"><span>💬</span><p>No threads found.</p></div>
+  </main>
+
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Create New Post</h3>
+        <button class="modal-close" id="closeModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <label>Category</label>
+        <select id="postCategory"><option value="question">Question</option><option value="discussion">Discussion</option><option value="tip">Tip</option></select>
+        <label>Title</label>
+        <input type="text" id="postTitle" placeholder="What's your question or topic?"/>
+        <label>Details</label>
+        <textarea id="postBody" rows="4" placeholder="Provide more details…"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="ann-read" id="submitPost">Post</button>
+        <button class="modal-cancel" id="cancelPost">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-logos">
+      <img src="../images/uclogo.png" alt="UC" class="footer-logo"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS" class="footer-logo"/>
+    </div>
+    <p>© 2026 University of Cebu — College of Computer Studies. All rights reserved.</p>
+  </footer>
+
+  <script src="../js/landing.js"></script>
+  <script src="../js/community.js"></script>
+  <script>
+    // ── SESSION-AWARE NAVBAR ───────────────────────────
+    (function() {
+      const storedUser  = localStorage.getItem('ccs_user');
+      const storedAdmin = localStorage.getItem('ccs_admin');
+      const API = 'http://127.0.0.1:5000/api';
+
+      function buildUserNav(name, avatarLetter, logoutFn) {
+        // Remove guest links (Login / Register)
+        document.querySelectorAll('#nav-links .nav-link, #nav-links .nav-btn').forEach(el => {
+          const href = el.getAttribute('href') || '';
+          if (href.includes('login-register') || href.includes('index.html')) {
+            el.closest('li').style.display = 'none';
+          }
+        });
+        // Build user badge + logout and append to nav
+        const navLinks = document.getElementById('nav-links');
+        if (!navLinks) return;
+
+        const userLi = document.createElement('li');
+        userLi.innerHTML = `<div class="nav-user">
+          <div class="nav-user-avatar">${avatarLetter}</div>
+          <span>${name}</span>
+        </div>`;
+        navLinks.appendChild(userLi);
+
+        const logoutLi = document.createElement('li');
+        logoutLi.innerHTML = `<button class="logout-btn" id="logout-btn">Logout</button>`;
+        navLinks.appendChild(logoutLi);
+
+        document.getElementById('logout-btn').addEventListener('click', logoutFn);
+      }
+
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        const name   = user.firstname || user.fullname.split(',')[0].trim();
+        const letter = (user.lastname || user.fullname).charAt(0).toUpperCase();
+        buildUserNav(name, letter, async () => {
+          try { await fetch(API + '/logout', { method: 'POST', credentials: 'include' }); } catch {}
+          localStorage.removeItem('ccs_user');
+          window.location.href = '/login-register/index.html';
+        });
+      } else if (storedAdmin) {
+        const admin  = JSON.parse(storedAdmin);
+        const letter = admin.username.charAt(0).toUpperCase();
+        buildUserNav(admin.username, letter, async () => {
+          try { await fetch(API + '/admin/logout', { method: 'POST', credentials: 'include' }); } catch {}
+          localStorage.removeItem('ccs_admin');
+          window.location.href = '/login-register/index.html';
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

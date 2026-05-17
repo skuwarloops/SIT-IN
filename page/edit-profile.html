@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS | Edit Profile</title>
+  <link rel="stylesheet" href="/css/landing.css"/>
+  <link rel="stylesheet" href="/css/dashboard.css"/>
+  <link rel="stylesheet" href="/css/auth.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    .edit-wrap {
+      max-width: 600px;
+      margin: 36px auto;
+      padding: 0 24px 80px;
+    }
+    .edit-title {
+      font-family: 'Fraunces', serif;
+      font-size: 26px; font-weight: 700;
+      color: #fff; margin-bottom: 6px;
+    }
+    .edit-sub {
+      font-size: 14px; color: var(--muted); margin-bottom: 28px;
+    }
+    .edit-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px; overflow: hidden;
+    }
+    .edit-card-header {
+      background: linear-gradient(135deg, var(--navy-dark), var(--purple));
+      color: #fff; font-size: 15px; font-weight: 600; padding: 14px 24px;
+    }
+    .edit-card-body {
+      padding: 28px 24px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+
+    /* ── PHOTO SECTION ── */
+    .photo-section {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 16px 20px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+    }
+    .photo-preview {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--navy-dark), var(--purple));
+      border: 3px solid rgba(201,162,39,0.5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 700; color: #fff;
+      overflow: hidden; flex-shrink: 0;
+      transition: border-color 0.2s;
+    }
+    .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-preview.has-photo { border-color: var(--gold); }
+    .photo-info { flex: 1; }
+    .photo-info p {
+      font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px;
+    }
+    .photo-info span {
+      font-size: 12px; color: var(--muted);
+    }
+    .photo-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .btn-upload {
+      padding: 7px 16px;
+      background: rgba(99,102,241,0.18);
+      color: #818cf8;
+      border: 1px solid rgba(99,102,241,0.3);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-upload:hover { background: rgba(99,102,241,0.3); }
+    .btn-remove-photo {
+      padding: 7px 14px;
+      background: rgba(239,68,68,0.1);
+      color: #f87171;
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: none;
+    }
+    .btn-remove-photo:hover { background: rgba(239,68,68,0.2); }
+    .photo-success {
+      font-size: 12px; color: #4ade80;
+      margin-top: 6px; display: none;
+    }
+
+    .edit-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    .edit-field { display: flex; flex-direction: column; gap: 6px; }
+    .edit-field label {
+      font-size: 12px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);
+    }
+    .edit-field input {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--card-border);
+      border-radius: 8px; padding: 10px 13px;
+      color: var(--text); font-family: 'DM Sans', sans-serif;
+      font-size: 14px; outline: none; transition: border-color 0.2s;
+    }
+    .edit-field input:focus { border-color: var(--purple); }
+    .edit-field input:disabled { opacity: 0.5; cursor: not-allowed; }
+    .edit-field .field-note { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .edit-actions {
+      display: flex; gap: 12px;
+      padding: 16px 24px; border-top: 1px solid var(--card-border);
+    }
+    .edit-save-btn {
+      padding: 10px 24px;
+      background: linear-gradient(135deg, var(--navy-dark), var(--purple));
+      color: #fff; border: none; border-radius: 8px;
+      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s;
+    }
+    .edit-save-btn:hover { opacity: 0.85; }
+    .edit-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .edit-cancel-btn {
+      padding: 10px 20px; background: transparent;
+      border: 1px solid var(--card-border); border-radius: 8px;
+      color: var(--muted); font-family: 'DM Sans', sans-serif;
+      font-size: 14px; cursor: pointer; transition: background 0.2s;
+      text-decoration: none; display: flex; align-items: center;
+    }
+    .edit-cancel-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+    .edit-success {
+      background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);
+      color: #4ade80; border-radius: 8px; padding: 12px 16px;
+      font-size: 13px; display: none;
+    }
+    .edit-error {
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+      color: #f87171; border-radius: 8px; padding: 12px 16px;
+      font-size: 13px; display: none;
+    }
+    @media (max-width: 600px) {
+      .edit-row { grid-template-columns: 1fr; }
+      .photo-section { flex-direction: column; text-align: center; }
+      .photo-actions { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img src="/images/uclogo.png" alt="UC Logo" class="nav-logo"/>
+      <img src="/images/ccsmainlogo.png" alt="CCS Logo" class="nav-logo"/>
+      <span class="nav-title">College of Computer Studies Sit-in Monitoring System</span>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/page/dashboard.html" class="nav-link">Home</a></li>
+      <li class="dropdown">
+        <a href="/page/community.html" class="nav-link dropdown-toggle" id="communityToggle">Community &#9660;</a>
+        <ul class="dropdown-menu" id="communityMenu">
+          <li><a href="/page/announcements.html">Announcements</a></li>
+          <li><a href="/page/resources.html">Resources</a></li>
+          <li><a href="/page/forums.html">Forums</a></li>
+        </ul>
+      </li>
+      <li><a href="/page/history.html" class="nav-link">History</a></li>
+      <li><a href="/page/reservation.html" class="nav-link">Reservation</a></li>
+      <li class="dropdown" id="user-dropdown-li">
+        <a href="#" class="nav-link dropdown-toggle" id="userDropdownToggle" style="display:flex;align-items:center;gap:8px;">
+          <div class="nav-user-avatar" id="nav-avatar">?</div>
+          <span id="nav-username">Loading...</span>
+        </a>
+        <ul class="dropdown-menu" id="userDropdownMenu" style="right:0;left:auto;min-width:180px;">
+          <li><a href="/page/edit-profile.html" class="current">✏️ Edit Profile</a></li>
+        </ul>
+      </li>
+      <li><button class="logout-btn" id="logout-btn">Logout</button></li>
+    </ul>
+  </nav>
+
+  <!-- Hidden file input -->
+  <input type="file" id="profile-pic-input" accept="image/*" style="display:none;"/>
+
+  <div class="edit-wrap">
+    <div class="edit-title">✏️ Edit Profile</div>
+    <p class="edit-sub">Update your personal information and profile photo below.</p>
+
+    <div class="edit-card">
+      <div class="edit-card-header">Profile Photo</div>
+      <div class="edit-card-body" style="padding-bottom:20px;">
+        <div class="photo-section">
+          <div class="photo-preview" id="photo-preview">
+            <span id="photo-initials">?</span>
+          </div>
+          <div class="photo-info">
+            <p>Profile Picture</p>
+            <span>JPG, PNG, GIF or WEBP. Max 5MB recommended.</span>
+            <div class="photo-actions">
+              <button class="btn-upload" onclick="document.getElementById('profile-pic-input').click()">
+                📷 Upload Photo
+              </button>
+              <button class="btn-remove-photo" id="btn-remove-photo" onclick="removePhoto()">
+                🗑 Remove
+              </button>
+            </div>
+            <div class="photo-success" id="photo-success">✓ Photo saved successfully!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="edit-card" style="margin-top:16px;">
+      <div class="edit-card-header">Personal Information</div>
+      <div class="edit-card-body">
+        <div id="edit-success" class="edit-success"></div>
+        <div id="edit-error"   class="edit-error"></div>
+
+        <div class="edit-row">
+          <div class="edit-field">
+            <label>Student ID</label>
+            <input type="text" id="ep-id" disabled/>
+            <span class="field-note">Cannot be changed</span>
+          </div>
+          <div class="edit-field">
+            <label>Course</label>
+            <input type="text" id="ep-course" disabled/>
+            <span class="field-note">Cannot be changed</span>
+          </div>
+        </div>
+
+        <div class="edit-row">
+          <div class="edit-field">
+            <label>Last Name</label>
+            <input type="text" id="ep-lastname" placeholder="dela Cruz"/>
+          </div>
+          <div class="edit-field">
+            <label>First Name</label>
+            <input type="text" id="ep-firstname" placeholder="Juan"/>
+          </div>
+        </div>
+
+        <div class="edit-field">
+          <label>Middle Name <span style="font-weight:400;opacity:0.6;">(optional)</span></label>
+          <input type="text" id="ep-middlename" placeholder="Santos"/>
+        </div>
+
+        <div class="edit-field">
+          <label>Email</label>
+          <input type="email" id="ep-email" placeholder="you@example.com"/>
+        </div>
+
+        <div class="edit-row">
+          <div class="edit-field">
+            <label>Year Level</label>
+            <input type="text" id="ep-level" disabled/>
+            <span class="field-note">Cannot be changed</span>
+          </div>
+          <div class="edit-field">
+            <label>Address</label>
+            <input type="text" id="ep-address" placeholder="e.g. Cebu City"/>
+          </div>
+        </div>
+      </div>
+      <div class="edit-actions">
+        <button class="edit-save-btn" id="save-btn" onclick="saveProfile()">Save Changes</button>
+        <a href="/page/dashboard.html" class="edit-cancel-btn">Cancel</a>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-logos">
+      <img src="/images/uclogo.png" alt="UC" class="footer-logo"/>
+      <img src="/images/ccsmainlogo.png" alt="CCS" class="footer-logo"/>
+    </div>
+    <p>&copy; 2026 University of Cebu &mdash; College of Computer Studies. All rights reserved.</p>
+  </footer>
+
+  <script src="/js/landing.js"></script>
+  <script>
+    const API = 'http://127.0.0.1:5000/api';
+
+    // ── AUTH ───────────────────────────────────────────────
+    const stored = localStorage.getItem('ccs_user');
+    if (!stored) window.location.href = '/login-register/index.html';
+    const user = JSON.parse(stored);
+
+    // ── NAVBAR ─────────────────────────────────────────────
+    document.getElementById('nav-username').textContent = user.firstname || user.fullname.split(',')[0].trim();
+
+    // Set navbar avatar — photo or initial
+    function refreshNavAvatar() {
+      const navAvatar = document.getElementById('nav-avatar');
+      const savedPic  = localStorage.getItem('ccs_profile_pic_' + user.id);
+      if (savedPic) {
+        navAvatar.innerHTML = `<img src="${savedPic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`;
+      } else {
+        navAvatar.textContent = (user.lastname || user.fullname).charAt(0).toUpperCase();
+      }
+    }
+    refreshNavAvatar();
+
+    // ── PROFILE PHOTO SECTION ──────────────────────────────
+    function refreshPhotoPreview() {
+      const preview  = document.getElementById('photo-preview');
+      const initials = document.getElementById('photo-initials');
+      const removeBtn = document.getElementById('btn-remove-photo');
+      const savedPic  = localStorage.getItem('ccs_profile_pic_' + user.id);
+
+      if (savedPic) {
+        preview.innerHTML = `<img src="${savedPic}" alt="Profile Photo"/>`;
+        preview.classList.add('has-photo');
+        removeBtn.style.display = 'block';
+      } else {
+        const ini = ((user.firstname||'').charAt(0) + (user.lastname||'').charAt(0)).toUpperCase()
+                    || user.fullname.charAt(0).toUpperCase();
+        preview.innerHTML = `<span id="photo-initials" style="font-size:28px;font-weight:700;color:#fff;">${ini}</span>`;
+        preview.classList.remove('has-photo');
+        removeBtn.style.display = 'none';
+      }
+    }
+    refreshPhotoPreview();
+
+    // Handle file selection
+    document.getElementById('profile-pic-input').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // 5MB size guard
+      if (file.size > 5 * 1024 * 1024) {
+        showMsg('edit-error', 'Photo is too large. Please use an image under 5MB.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target.result;
+
+        // Save to localStorage
+        localStorage.setItem('ccs_profile_pic_' + user.id, dataUrl);
+
+        // Update the preview on this page
+        refreshPhotoPreview();
+
+        // Update navbar avatar immediately
+        refreshNavAvatar();
+
+        // Show success indicator
+        const successEl = document.getElementById('photo-success');
+        successEl.style.display = 'block';
+        setTimeout(() => successEl.style.display = 'none', 3000);
+      };
+      reader.readAsDataURL(file);
+
+      // Reset input so same file can be re-selected
+      this.value = '';
+    });
+
+    function removePhoto() {
+      if (!confirm('Remove your profile photo?')) return;
+      localStorage.removeItem('ccs_profile_pic_' + user.id);
+      refreshPhotoPreview();
+      refreshNavAvatar();
+    }
+
+    // ── POPULATE FORM FIELDS ───────────────────────────────
+    document.getElementById('ep-id').value         = user.id_number  || '';
+    document.getElementById('ep-course').value     = user.course     || '';
+    document.getElementById('ep-level').value      = user.level      || '';
+    document.getElementById('ep-lastname').value   = user.lastname   || '';
+    document.getElementById('ep-firstname').value  = user.firstname  || '';
+    document.getElementById('ep-middlename').value = user.middlename || '';
+    document.getElementById('ep-email').value      = user.email      || '';
+    document.getElementById('ep-address').value    = user.address    || '';
+
+    // ── SAVE PROFILE ───────────────────────────────────────
+    function showMsg(id, text) {
+      const el = document.getElementById(id);
+      el.textContent    = text;
+      el.style.display  = 'block';
+      const other = id === 'edit-success' ? 'edit-error' : 'edit-success';
+      document.getElementById(other).style.display = 'none';
+    }
+
+    async function saveProfile() {
+      document.getElementById('edit-success').style.display = 'none';
+      document.getElementById('edit-error').style.display   = 'none';
+
+      const lastname   = document.getElementById('ep-lastname').value.trim();
+      const firstname  = document.getElementById('ep-firstname').value.trim();
+      const middlename = document.getElementById('ep-middlename').value.trim();
+      const email      = document.getElementById('ep-email').value.trim();
+      const address    = document.getElementById('ep-address').value.trim();
+
+      if (!lastname || !firstname || !email) {
+        showMsg('edit-error', 'Last name, first name, and email are required.');
+        return;
+      }
+
+      const btn = document.getElementById('save-btn');
+      btn.disabled = true; btn.textContent = 'Saving...';
+
+      try {
+        const res  = await fetch(`${API}/profile/${user.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ lastname, firstname, middlename, email, address })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          localStorage.setItem('ccs_user', JSON.stringify(data.user));
+          showMsg('edit-success', '✓ ' + data.message);
+          // Update navbar name
+          document.getElementById('nav-username').textContent = data.user.firstname;
+          refreshNavAvatar();
+        } else {
+          showMsg('edit-error', data.message || 'Failed to save changes.');
+        }
+      } catch {
+        showMsg('edit-error', 'Cannot connect to server.');
+      }
+
+      btn.disabled = false; btn.textContent = 'Save Changes';
+    }
+
+    // ── LOGOUT ─────────────────────────────────────────────
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      try { await fetch(API + '/logout', { method: 'POST', credentials: 'include' }); } catch {}
+      localStorage.removeItem('ccs_user');
+      window.location.href = '/login-register/index.html';
+    });
+
+    // ── USER DROPDOWN ──────────────────────────────────────
+    const userDropdownToggle = document.getElementById('userDropdownToggle');
+    const userDropdownMenu   = document.getElementById('userDropdownMenu');
+    if (userDropdownToggle && userDropdownMenu) {
+      userDropdownToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        userDropdownMenu.classList.toggle('open');
+      });
+      document.addEventListener('click', (e) => {
+        if (!userDropdownToggle.contains(e.target) && !userDropdownMenu.contains(e.target))
+          userDropdownMenu.classList.remove('open');
+      });
+    }
+  </script>
+</body>
+</html>

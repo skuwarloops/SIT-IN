@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS | Login & Register</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/auth.css" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Fraunces:wght@700&display=swap" rel="stylesheet"/>
+  <style>
+    /* Login type toggle */
+    .login-type {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .login-type-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      background: var(--input-bg);
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .login-type-btn.active {
+      background: linear-gradient(135deg, var(--uc-navy), var(--ccs-purple));
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(91,45,142,0.4);
+    }
+    /* Admin login fields */
+    #admin-login-fields { display: none; }
+    #student-login-fields { display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="brand">
+      <img src="/images/uclogo.png" alt="University of Cebu" />
+      <div class="brand-divider"></div>
+      <img src="/images/ccsmainlogo.png" alt="College of Computer Studies" />
+    </div>
+    <div class="brand-subtitle">UC · College of Computer Studies</div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="login">Login</button>
+      <button class="tab" data-tab="register">Register</button>
+    </div>
+
+    <!-- ── LOGIN ── -->
+    <form id="login" class="form active" novalidate>
+      <div id="login-server-err"></div>
+
+      <!-- Login type selector -->
+      <div class="login-type">
+        <button type="button" class="login-type-btn active" id="btn-student-login" onclick="setLoginType('student')">
+          👤 Student
+        </button>
+        <button type="button" class="login-type-btn" id="btn-admin-login" onclick="setLoginType('admin')">
+          🛡️ Admin
+        </button>
+      </div>
+
+      <!-- Student login fields -->
+      <div id="student-login-fields">
+        <div class="field">
+          <label>Student ID Number</label>
+          <input type="text" id="login-id-number" placeholder="e.g. 2024-0001" />
+          <span class="error" id="login-id-number-err"></span>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="••••••••" />
+          <span class="error" id="login-password-err"></span>
+        </div>
+      </div>
+
+      <!-- Admin login fields -->
+      <div id="admin-login-fields">
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="login-username" placeholder="admin" />
+          <span class="error" id="login-username-err"></span>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="login-admin-password" placeholder="••••••••" />
+          <span class="error" id="login-admin-password-err"></span>
+        </div>
+      </div>
+
+      <div class="forgot"><a href="#">Forgot password?</a></div>
+      <button type="submit" class="btn" id="login-btn">Login</button>
+      <p class="switch">No account? <a href="#" data-switch="register">Register</a></p>
+    </form>
+
+    <!-- ── REGISTER ── -->
+    <form id="register" class="form" novalidate>
+      <div id="reg-server-err"></div>
+
+      <div class="field">
+        <label>Student ID Number</label>
+        <input type="text" id="reg-id-number" placeholder="e.g. 2024-0001" />
+        <span class="error" id="reg-id-number-err"></span>
+      </div>
+
+      <div class="field">
+        <label>Last Name</label>
+        <input type="text" id="reg-lastname" placeholder="dela Cruz" />
+        <span class="error" id="reg-lastname-err"></span>
+      </div>
+      <div class="field">
+        <label>First Name</label>
+        <input type="text" id="reg-firstname" placeholder="Juan" />
+        <span class="error" id="reg-firstname-err"></span>
+      </div>
+      <div class="field">
+        <label>Middle Name <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+        <input type="text" id="reg-middlename" placeholder="Santos" />
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="reg-email" placeholder="you@example.com" />
+        <span class="error" id="reg-email-err"></span>
+      </div>
+      <div class="field">
+        <label>Address</label>
+        <input type="text" id="reg-address" placeholder="e.g. Cebu City" />
+      </div>
+      <div class="field">
+        <label>Course</label>
+        <select id="reg-course">
+          <option value="">— Select Course —</option>
+          <option value="BSIT">Bachelor of Science in Information Technology (BSIT)</option>
+          <option value="BSCS">Bachelor of Science in Computer Science (BSCS)</option>
+          <option value="BSAI">Bachelor of Science in Artificial Intelligence (BSAI)</option>
+          <option value="BSCE">Bachelor of Science in Computer Engineering (BSCE)</option>
+        </select>
+        <span class="error" id="reg-course-err"></span>
+      </div>
+      <div class="field">
+        <label>Year Level</label>
+        <select id="reg-level">
+          <option value="">— Select Year Level —</option>
+          <option value="1st Year">1st Year</option>
+          <option value="2nd Year">2nd Year</option>
+          <option value="3rd Year">3rd Year</option>
+          <option value="4th Year">4th Year</option>
+        </select>
+        <span class="error" id="reg-level-err"></span>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="reg-password" placeholder="Min. 6 characters" />
+        <span class="error" id="reg-password-err"></span>
+      </div>
+      <div class="field">
+        <label>Confirm Password</label>
+        <input type="password" id="reg-confirm" placeholder="Repeat password" />
+        <span class="error" id="reg-confirm-err"></span>
+      </div>
+      <button type="submit" class="btn" id="reg-btn">Create Account</button>
+      <p class="switch">Have an account? <a href="#" data-switch="login">Login</a></p>
+    </form>
+
+    <!-- SUCCESS -->
+    <div id="success" class="success hidden">
+      <div class="check">&#10003;</div>
+      <p id="success-msg"></p>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+</body>
+</html>

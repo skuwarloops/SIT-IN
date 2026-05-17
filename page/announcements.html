@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS | Announcements</title>
+  <link rel="stylesheet" href="../css/landing.css"/>
+  <link rel="stylesheet" href="../css/community.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img src="../images/uclogo.png" alt="UC Logo" class="nav-logo"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS Logo" class="nav-logo"/>
+      <span class="nav-title">College of Computer Studies Sit-in Monitoring System</span>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/page/dashboard.html" class="nav-link">Home</a></li>
+      <li class="dropdown">
+        <a href="community.html" class="nav-link dropdown-toggle active" id="communityToggle">Community ▾</a>
+        <ul class="dropdown-menu" id="communityMenu">
+          <li><a href="announcements.html" class="current">Announcements</a></li>
+          <li><a href="resources.html">Resources</a></li>
+          <li><a href="forums.html">Forums</a></li>
+        </ul>
+      </li>
+      <li><a href="landingpage.html#about" class="nav-link">About</a></li>
+      <li><a href="../login-register/index.html" class="nav-link">Login</a></li>
+      <li><a href="../login-register/index.html" class="nav-btn">Register</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-hero">
+    <div class="page-hero-bg"></div>
+    <div class="page-hero-content">
+      <div class="breadcrumb"><a href="landingpage.html">Home</a> › <a href="#">Community</a> › Announcements</div>
+      <h1>📢 Announcements</h1>
+      <p>Stay updated with the latest news and reminders from the CCS faculty and administration.</p>
+    </div>
+  </div>
+
+  <main class="community-main">
+    <div class="filter-bar">
+      <div class="filter-tabs">
+        <button class="ftab active" data-filter="all">All</button>
+        <button class="ftab" data-filter="important">Important</button>
+        <button class="ftab" data-filter="schedule">Schedule</button>
+        <button class="ftab" data-filter="general">General</button>
+      </div>
+      <input class="search-input" type="text" placeholder="🔍  Search announcements…" id="announcementSearch"/>
+    </div>
+    <div class="ann-list" id="annList">
+      <div class="ann-card" data-category="important">
+        <div class="ann-meta"><span class="ann-tag important">Important</span><span class="ann-date">Feb 25, 2026</span></div>
+        <h3>Final Examination Schedule — 2nd Semester AY 2025–2026</h3>
+        <p>The final examination for all CCS subjects will be held from March 10–14, 2026. Students are required to present their school IDs at the laboratory entrance. No sit-in sessions will be accommodated during exam week.</p>
+        <div class="ann-footer"><span class="ann-author">👤 Dean's Office</span><button class="ann-read">Read More</button></div>
+      </div>
+      <div class="ann-card" data-category="schedule">
+        <div class="ann-meta"><span class="ann-tag schedule">Schedule</span><span class="ann-date">Feb 20, 2026</span></div>
+        <h3>Lab 524 Maintenance — Temporary Closure</h3>
+        <p>Lab 524 will be temporarily closed from February 22–24 for hardware maintenance and upgrades. Students who have scheduled sit-in sessions during this period are advised to transfer to Lab 526.</p>
+        <div class="ann-footer"><span class="ann-author">👤 Lab Administrator</span><button class="ann-read">Read More</button></div>
+      </div>
+      <div class="ann-card" data-category="general">
+        <div class="ann-meta"><span class="ann-tag general">General</span><span class="ann-date">Feb 15, 2026</span></div>
+        <h3>Reminder: Sit-in Session Rules and Policies</h3>
+        <p>All students using the CCS laboratories for sit-in sessions are reminded to log their sessions properly through this system. Unlogged sessions may not be counted toward attendance.</p>
+        <div class="ann-footer"><span class="ann-author">👤 CCS Faculty</span><button class="ann-read">Read More</button></div>
+      </div>
+      <div class="ann-card" data-category="important">
+        <div class="ann-meta"><span class="ann-tag important">Important</span><span class="ann-date">Feb 10, 2026</span></div>
+        <h3>New Sit-in Monitoring System Launched</h3>
+        <p>The College of Computer Studies is proud to launch the new digital Sit-in Monitoring System. All students and faculty are encouraged to register and familiarize themselves with the platform.</p>
+        <div class="ann-footer"><span class="ann-author">👤 CCS Administration</span><button class="ann-read">Read More</button></div>
+      </div>
+      <div class="ann-card" data-category="schedule">
+        <div class="ann-meta"><span class="ann-tag schedule">Schedule</span><span class="ann-date">Feb 5, 2026</span></div>
+        <h3>Extended Lab Hours — February</h3>
+        <p>Effective February 2026, CCS laboratories will be open from 7:00 AM to 8:00 PM on weekdays. Saturday hours remain 8:00 AM to 5:00 PM.</p>
+        <div class="ann-footer"><span class="ann-author">👤 Lab Administrator</span><button class="ann-read">Read More</button></div>
+      </div>
+    </div>
+    <div class="empty-state hidden" id="emptyState"><span>🔍</span><p>No announcements found.</p></div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-logos">
+      <img src="../images/uclogo.png" alt="UC" class="footer-logo"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS" class="footer-logo"/>
+    </div>
+    <p>© 2026 University of Cebu — College of Computer Studies. All rights reserved.</p>
+  </footer>
+
+  <script src="../js/landing.js"></script>
+  <script src="../js/community.js"></script>
+  <script>
+    // ── SESSION-AWARE NAVBAR ───────────────────────────
+    (function() {
+      const storedUser  = localStorage.getItem('ccs_user');
+      const storedAdmin = localStorage.getItem('ccs_admin');
+      const API = 'http://127.0.0.1:5000/api';
+
+      function buildUserNav(name, avatarLetter, logoutFn) {
+        // Remove guest links (Login / Register)
+        document.querySelectorAll('#nav-links .nav-link, #nav-links .nav-btn').forEach(el => {
+          const href = el.getAttribute('href') || '';
+          if (href.includes('login-register') || href.includes('index.html')) {
+            el.closest('li').style.display = 'none';
+          }
+        });
+        // Build user badge + logout and append to nav
+        const navLinks = document.getElementById('nav-links');
+        if (!navLinks) return;
+
+        const userLi = document.createElement('li');
+        userLi.innerHTML = `<div class="nav-user">
+          <div class="nav-user-avatar">${avatarLetter}</div>
+          <span>${name}</span>
+        </div>`;
+        navLinks.appendChild(userLi);
+
+        const logoutLi = document.createElement('li');
+        logoutLi.innerHTML = `<button class="logout-btn" id="logout-btn">Logout</button>`;
+        navLinks.appendChild(logoutLi);
+
+        document.getElementById('logout-btn').addEventListener('click', logoutFn);
+      }
+
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        const name   = user.firstname || user.fullname.split(',')[0].trim();
+        const letter = (user.lastname || user.fullname).charAt(0).toUpperCase();
+        buildUserNav(name, letter, async () => {
+          try { await fetch(API + '/logout', { method: 'POST', credentials: 'include' }); } catch {}
+          localStorage.removeItem('ccs_user');
+          window.location.href = '/login-register/index.html';
+        });
+      } else if (storedAdmin) {
+        const admin  = JSON.parse(storedAdmin);
+        const letter = admin.username.charAt(0).toUpperCase();
+        buildUserNav(admin.username, letter, async () => {
+          try { await fetch(API + '/admin/logout', { method: 'POST', credentials: 'include' }); } catch {}
+          localStorage.removeItem('ccs_admin');
+          window.location.href = '/login-register/index.html';
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS | Dashboard</title>
+  <link rel="stylesheet" href="/css/landing.css"/>
+  <link rel="stylesheet" href="/css/dashboard.css"/>
+  <link rel="stylesheet" href="/css/darkmode.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── NOTIFICATION BELL ── */
+    .notif-bell-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+    .notif-bell-wrap:hover { background: rgba(255,255,255,0.1); }
+    .notif-bell-icon { font-size: 20px; line-height: 1; }
+    .notif-badge {
+      position: absolute;
+      top: 2px; right: 4px;
+      background: #ef4444;
+      color: #fff;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      min-width: 16px;
+      height: 16px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      line-height: 1;
+    }
+
+    /* ── NOTIFICATION DROPDOWN ── */
+    .notif-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 320px;
+      background: #1e2235;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 9999;
+      overflow: hidden;
+    }
+    .notif-dropdown.open { display: block; }
+    .notif-drop-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .notif-drop-header span { font-size: 13px; font-weight: 600; color: #fff; }
+    .notif-mark-read {
+      font-size: 11px;
+      color: #818cf8;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+    .notif-mark-read:hover { color: #a5b4fc; }
+    .notif-list { max-height: 320px; overflow-y: auto; }
+    .notif-empty {
+      padding: 24px 16px;
+      text-align: center;
+      font-size: 13px;
+      color: rgba(255,255,255,0.4);
+    }
+    .notif-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      transition: background 0.12s;
+      cursor: pointer;
+    }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: rgba(255,255,255,0.05); }
+    .notif-item.unread { background: rgba(99,102,241,0.1); }
+    .notif-item.unread:hover { background: rgba(99,102,241,0.18); }
+    .notif-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #6366f1;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+    .notif-dot.read { background: transparent; }
+    .notif-icon-circle {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .notif-icon-circle.announcement { background: rgba(139,92,246,0.25); }
+    .notif-icon-circle.sitin        { background: rgba(34,197,94,0.2); }
+    .notif-icon-circle.reservation  { background: rgba(59,130,246,0.2); }
+    .notif-icon-circle.info         { background: rgba(255,255,255,0.1); }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-body .n-title {
+      font-size: 12px; font-weight: 600;
+      color: #e2e8f0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .notif-body .n-msg {
+      font-size: 11px; color: rgba(255,255,255,0.55);
+      margin-top: 2px; line-height: 1.4;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .notif-body .n-time {
+      font-size: 10px; color: rgba(255,255,255,0.35);
+      margin-top: 3px;
+    }
+
+    /* ── TOAST POP-UPS ── */
+    #toast-container {
+      position: fixed;
+      top: 70px; right: 20px;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: #1e2235;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-left: 4px solid #6366f1;
+      border-radius: 10px;
+      padding: 14px 16px;
+      width: 300px;
+      pointer-events: all;
+      animation: toastIn 0.35s cubic-bezier(.21,1.02,.73,1) forwards;
+    }
+    .toast.toast-announcement { border-left-color: #8b5cf6; }
+    .toast.toast-sitin        { border-left-color: #22c55e; }
+    .toast.toast-reservation  { border-left-color: #3b82f6; }
+    .toast.hiding { animation: toastOut 0.3s ease forwards; }
+    @keyframes toastIn  { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes toastOut { to   { transform: translateX(110%); opacity: 0; } }
+    .toast-icon { font-size: 20px; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 13px; font-weight: 600; color: #e2e8f0; }
+    .toast-msg   { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 3px; line-height: 1.4; }
+    .toast-close {
+      background: none; border: none;
+      color: rgba(255,255,255,0.35); font-size: 18px;
+      cursor: pointer; padding: 0; line-height: 1;
+      flex-shrink: 0;
+    }
+    .toast-close:hover { color: rgba(255,255,255,0.7); }
+  </style>
+</head>
+<body>
+
+  <!-- ── TOAST CONTAINER ── -->
+  <div id="toast-container"></div>
+
+  <!-- ── NAVBAR ── -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img src="/images/uclogo.png" alt="UC Logo" class="nav-logo"/>
+      <img src="/images/ccsmainlogo.png" alt="CCS Logo" class="nav-logo"/>
+      <span class="nav-title">College of Computer Studies Sit-in Monitoring System</span>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/page/dashboard.html" class="nav-link active">Home</a></li>
+      <li class="dropdown">
+        <a href="/page/community.html" class="nav-link dropdown-toggle" id="communityToggle">Community &#9660;</a>
+        <ul class="dropdown-menu" id="communityMenu">
+          <li><a href="/page/announcements.html">Announcements</a></li>
+          <li><a href="/page/resources.html">Resources</a></li>
+          <li><a href="/page/forums.html">Forums</a></li>
+        </ul>
+      </li>
+      <li><a href="/page/history.html" class="nav-link">History</a></li>
+      <li><a href="/page/reservation.html" class="nav-link">Reservation</a></li>
+      <li><a href="/page/testimonials.html" class="nav-link">Testimonials</a></li>
+
+      <!-- ── NOTIFICATION BELL ── -->
+      <li style="position:relative;" id="notif-li">
+        <div class="notif-bell-wrap" id="notif-bell">
+          <span class="notif-bell-icon">🔔</span>
+          <span class="notif-badge" id="notif-badge"></span>
+        </div>
+        <div class="notif-dropdown" id="notif-dropdown">
+          <div class="notif-drop-header">
+            <span>Notifications</span>
+            <button class="notif-mark-read" id="notif-mark-all">Mark all as read</button>
+          </div>
+          <div class="notif-list" id="notif-list">
+            <div class="notif-empty">No notifications yet.</div>
+          </div>
+        </div>
+      </li>
+
+      <li class="dropdown" id="user-dropdown-li">
+        <a href="#" class="nav-link dropdown-toggle" id="userDropdownToggle" style="display:flex;align-items:center;gap:8px;">
+          <div class="nav-user-avatar" id="nav-avatar">?</div>
+          <span id="nav-username">Loading...</span>
+        </a>
+        <ul class="dropdown-menu" id="userDropdownMenu" style="right:0;left:auto;min-width:180px;">
+          <li><a href="/page/edit-profile.html">✏️ Edit Profile</a></li>
+          <li><a href="#" id="change-photo-trigger">📷 Change Photo</a></li>
+        </ul>
+      </li>
+      <input type="file" id="profile-pic-input" accept="image/*" style="display:none;"/>
+      <li><button class="logout-btn" id="logout-btn">Logout</button></li>
+    </ul>
+  </nav>
+
+  <!-- ── DASHBOARD CONTENT ── -->
+  <div class="dash-wrapper">
+
+    <!-- LEFT: Student Information -->
+    <div class="dash-panel">
+      <div class="dash-panel-header">&#128100; Student Information</div>
+      <div class="dash-panel-body">
+        <div class="profile-pic-wrap">
+          <div class="profile-pic" id="profile-pic-display">
+            <span id="profile-initials">?</span>
+          </div>
+        </div>
+        <div class="student-info-list">
+          <div class="si-row"><span class="si-icon">&#128100;</span><span class="si-label">Name:</span><span class="si-value" id="si-name">—</span></div>
+          <div class="si-row"><span class="si-icon">&#127979;</span><span class="si-label">Course:</span><span class="si-value" id="si-course">—</span></div>
+          <div class="si-row"><span class="si-icon">&#128197;</span><span class="si-label">Year:</span><span class="si-value" id="si-year">—</span></div>
+          <div class="si-row"><span class="si-icon">&#128231;</span><span class="si-label">Email:</span><span class="si-value" id="si-email">—</span></div>
+          <div class="si-row"><span class="si-icon">&#128205;</span><span class="si-label">Address:</span><span class="si-value" id="si-address">—</span></div>
+          <div class="si-row"><span class="si-icon">&#9200;</span><span class="si-label">Sessions:</span><span class="si-value" id="si-sessions">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MIDDLE: Announcements -->
+    <div class="dash-panel">
+      <div class="dash-panel-header">&#128226; Announcement</div>
+      <div class="dash-panel-body" id="ann-panel">
+        <div class="dash-loading">Loading announcements...</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Rules and Regulations -->
+    <div class="dash-panel">
+      <div class="dash-panel-header">&#128218; Rules and Regulations</div>
+      <div class="dash-panel-body dash-rules">
+        <h3>University of Cebu</h3>
+        <h4>COLLEGE OF INFORMATION &amp; COMPUTER STUDIES</h4>
+        <h5>LABORATORY RULES AND REGULATIONS</h5>
+        <p>To avoid embarrassment and maintain camaraderie with your friends and superiors at our laboratories, please observe the following:</p>
+        <ol>
+          <li>Maintain silence, proper decorum, and discipline inside the laboratory. Mobile phones, walkmans and other personal pieces of equipment must be switched off.</li>
+          <li>Games are not allowed inside the lab. This includes computer-related games, card games and other games that may disturb the operation of the lab.</li>
+          <li>Surfing the internet is allowed only with the permission of the instructor. Downloading and installing of software are strictly prohibited.</li>
+          <li>Getting access to other websites not related to the course is strictly prohibited.</li>
+          <li>Deleting computer files and changing the configuration of the computer is a major offense.</li>
+          <li>Observe proper Netiquette at all times when using the internet.</li>
+          <li>Laptop computers are not allowed inside the laboratory.</li>
+          <li>Food and drinks are not allowed inside the lab.</li>
+          <li>Students must clean their workstations after use.</li>
+          <li>Student must inform the laboratory instructor or assistant of any defective equipment found in the laboratory.</li>
+        </ol>
+      </div>
+    </div>
+
+  </div><!-- end dash-wrapper -->
+
+  <!-- ── SIT-IN SUMMARY SECTION ── -->
+  <div class="sitin-summary-wrap">
+
+    <div class="sum-section-title">📊 My SIT-IN Summary</div>
+
+    <!-- Stat Cards -->
+    <div class="sum-cards">
+      <div class="sum-card sum-card-blue">
+        <div class="sum-card-icon">🕐</div>
+        <div class="sum-card-val" id="sum-total-hours">—</div>
+        <div class="sum-card-label">Total Hours</div>
+      </div>
+      <div class="sum-card sum-card-green">
+        <div class="sum-card-icon">📅</div>
+        <div class="sum-card-val" id="sum-sessions">—</div>
+        <div class="sum-card-label">Number of Sessions</div>
+      </div>
+      <div class="sum-card sum-card-purple">
+        <div class="sum-card-icon">⏱️</div>
+        <div class="sum-card-val" id="sum-avg">—</div>
+        <div class="sum-card-label">Avg Session Duration</div>
+      </div>
+      <div class="sum-card sum-card-gold">
+        <div class="sum-card-icon">🏆</div>
+        <div class="sum-card-val" id="sum-longest">—</div>
+        <div class="sum-card-label">Longest Session</div>
+      </div>
+    </div>
+
+    <!-- Sessions Table -->
+    <div class="sum-table-wrap">
+      <div class="sum-table-header">
+        <span>📋 Session History</span>
+      </div>
+      <div class="sum-table-container">
+        <table class="sum-table" id="sum-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Lab</th>
+              <th>PC No.</th>
+              <th>Time-In</th>
+              <th>Time-Out</th>
+              <th>Duration</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="sum-table-body">
+            <tr><td colspan="7" class="sum-empty">Loading sessions...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- end sitin-summary-wrap -->
+    <div class="footer-logos">
+      <img src="/images/uclogo.png" alt="UC" class="footer-logo"/>
+      <img src="/images/ccsmainlogo.png" alt="CCS" class="footer-logo"/>
+    </div>
+    <p>&copy; 2026 University of Cebu &mdash; College of Computer Studies. All rights reserved.</p>
+  </footer>
+
+  <script src="/js/landing.js"></script>
+  <script src="/js/darkmode.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
