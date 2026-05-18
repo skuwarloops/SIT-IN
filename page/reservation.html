@@ -106,7 +106,7 @@
           </div>
           <div class="res-form-field">
             <label>Laboratory</label>
-            <select id="res-lab">
+            <select id="res-lab" onchange="loadPCs()">
               <option value="">— Select Lab —</option>
               <option value="Lab 528">Lab 528</option>
               <option value="Lab 530">Lab 530</option>
@@ -127,11 +127,19 @@
         <div class="res-form-row">
           <div class="res-form-field">
             <label>Time Start</label>
-            <input type="time" id="res-time-start"/>
+            <input type="time" id="res-time-start" onchange="loadPCs()"/>
           </div>
           <div class="res-form-field">
             <label>Time End</label>
-            <input type="time" id="res-time-end"/>
+            <input type="time" id="res-time-end" onchange="loadPCs()"/>
+          </div>
+        </div>
+
+        <div class="res-form-row" id="pc-row" style="display:none;">
+          <div class="res-form-field" style="width:100%;">
+            <label>Select PC <span id="pc-avail-count" style="font-size:11px;color:var(--muted);"></span></label>
+            <div id="pc-grid" class="pc-grid"></div>
+            <input type="hidden" id="res-pc-no"/>
           </div>
         </div>
       </div>
@@ -241,6 +249,9 @@
       document.getElementById('res-lab').value         = '';
       document.getElementById('res-time-start').value  = '';
       document.getElementById('res-time-end').value    = '';
+      document.getElementById('res-pc-no').value      = '';
+      document.getElementById('pc-row').style.display = 'none';
+      document.getElementById('pc-grid').innerHTML    = '';
     }
 
     async function submitReservation() {
@@ -270,7 +281,8 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ user_id: user.id, purpose, lab, date, time_start, time_end })
+          body: JSON.stringify({ user_id: user.id, purpose, lab, date, time_start, time_end,
+            pc_no: document.getElementById('res-pc-no').value || null })
         });
         const data = await res.json();
         if (data.success) {
@@ -323,7 +335,6 @@
 
     loadReservations();
 
-<<<<<<< HEAD
     // Check if reservations are enabled by admin
     (async () => {
       try {
@@ -342,8 +353,6 @@
       } catch {}
     })();
 
-=======
->>>>>>> bb05e0770d79d2721107efe3cee684d69393c7c9
     // User dropdown toggle
     const userDropdownToggle = document.getElementById('userDropdownToggle');
     const userDropdownMenu   = document.getElementById('userDropdownMenu');
@@ -357,6 +366,84 @@
           userDropdownMenu.classList.remove('open');
         }
       });
+    }
+  </script>
+  <style>
+    .pc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+      gap: 7px;
+      margin-top: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+      padding: 4px 2px;
+    }
+    .pc-btn {
+      padding: 7px 4px;
+      border-radius: 8px;
+      border: 1.5px solid var(--card-border, #334155);
+      background: rgba(255,255,255,0.04);
+      color: var(--text, #e2e8f0);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .pc-btn:hover:not(.pc-taken) { border-color: #8b5cf6; background: rgba(139,92,246,0.15); }
+    .pc-btn.pc-selected { border-color: #22c55e; background: rgba(34,197,94,0.18); color: #4ade80; }
+    .pc-btn.pc-taken { opacity: 0.38; cursor: not-allowed; text-decoration: line-through; }
+    .pc-loading { font-size: 12px; color: var(--muted, #94a3b8); padding: 10px 0; }
+  </style>
+
+    // ── PC Availability ──
+    async function loadPCs() {
+      const lab       = document.getElementById('res-lab').value;
+      const date      = document.getElementById('res-date').value;
+      const timeStart = document.getElementById('res-time-start').value;
+      const timeEnd   = document.getElementById('res-time-end').value;
+      const pcRow     = document.getElementById('pc-row');
+      const pcGrid    = document.getElementById('pc-grid');
+      const pcCount   = document.getElementById('pc-avail-count');
+      const pcHidden  = document.getElementById('res-pc-no');
+
+      if (!lab) { pcRow.style.display = 'none'; return; }
+
+      pcRow.style.display = 'block';
+      pcGrid.innerHTML = '<div class="pc-loading">Loading PCs...</div>';
+      pcHidden.value = '';
+
+      const params = new URLSearchParams({ lab });
+      if (date)      params.set('date', date);
+      if (timeStart) params.set('time_start', timeStart);
+      if (timeEnd)   params.set('time_end', timeEnd);
+
+      try {
+        const res  = await fetch(API + '/lab/pcs?' + params, { credentials: 'include' });
+        const data = await res.json();
+        if (!data.pcs || !data.pcs.length) {
+          pcGrid.innerHTML = '<div class="pc-loading">No PCs found for this lab.</div>';
+          return;
+        }
+        const available = data.pcs.filter(p => p.status === 'Available').length;
+        pcCount.textContent = '(' + available + ' available of ' + data.pcs.length + ')';
+        pcGrid.innerHTML = data.pcs.map(p =>
+          '<button type="button" class="pc-btn' + (p.status === 'Taken' ? ' pc-taken' : '') + '" ' +
+          'id="pc-btn-' + p.pc_no + '" ' +
+          (p.status !== 'Taken' ? 'onclick="selectPC(' + p.pc_no + ')" ' : '') +
+          'title="' + (p.status === 'Taken' ? 'Already reserved' : 'PC ' + p.pc_no) + '">' +
+          'PC ' + p.pc_no + '</button>'
+        ).join('');
+      } catch {
+        pcGrid.innerHTML = '<div class="pc-loading">Could not load PCs.</div>';
+      }
+    }
+
+    function selectPC(pcNo) {
+      document.querySelectorAll('.pc-btn').forEach(b => b.classList.remove('pc-selected'));
+      const btn = document.getElementById('pc-btn-' + pcNo);
+      if (btn) btn.classList.add('pc-selected');
+      document.getElementById('res-pc-no').value = pcNo;
     }
   </script>
 </body>

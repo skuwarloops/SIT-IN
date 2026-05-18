@@ -494,7 +494,6 @@ body {
   .admin-main { padding: 20px 16px 60px; }
   .admin-nav-links { display: none; }
 }
-<<<<<<< HEAD
 
 /* ── Reservation Toggle ── */
 .resv-toggle-label {
@@ -503,17 +502,21 @@ body {
   gap: 10px;
   cursor: pointer;
   user-select: none;
+  flex-direction: row;
+  flex-wrap: nowrap;
 }
 .resv-toggle-label input[type="checkbox"] { display: none; }
 
 .resv-toggle-track {
   width: 44px;
+  min-width: 44px;
   height: 24px;
   background: #374151;
   border-radius: 999px;
   position: relative;
   transition: background 0.2s;
   flex-shrink: 0;
+  display: inline-block;
 }
 .resv-toggle-label input:checked + .resv-toggle-track { background: #22c55e; }
 
@@ -527,5 +530,9 @@ body {
   box-shadow: 0 1px 4px rgba(0,0,0,0.3);
 }
 .resv-toggle-label input:checked + .resv-toggle-track .resv-toggle-thumb { left: 23px; }
-=======
->>>>>>> bb05e0770d79d2721107efe3cee684d69393c7c9
+
+#resv-toggle-text {
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+}

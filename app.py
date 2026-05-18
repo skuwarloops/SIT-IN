@@ -192,7 +192,23 @@ def init_db():
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         ''')
-<<<<<<< HEAD
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS computers (
+                id     INTEGER PRIMARY KEY AUTOINCREMENT,
+                lab    TEXT NOT NULL,
+                pc_no  INTEGER NOT NULL,
+                status TEXT DEFAULT 'Available',
+                UNIQUE(lab, pc_no)
+            )
+        ''')
+        # Seed default PCs for each lab
+        labs_pcs = [('Lab 524',40),('Lab 526',40),('Lab 528',40),('Lab 530',40),('Lab 540',40)]
+        for lab, count in labs_pcs:
+            for pc in range(1, count + 1):
+                try:
+                    conn.execute('INSERT INTO computers (lab, pc_no) VALUES (?,?)', (lab, pc))
+                except sqlite3.IntegrityError:
+                    pass
         conn.execute('''
             CREATE TABLE IF NOT EXISTS settings (
                 key   TEXT PRIMARY KEY,
@@ -212,8 +228,6 @@ def init_db():
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         ''')
-=======
->>>>>>> bb05e0770d79d2721107efe3cee684d69393c7c9
         try:
             conn.execute(
                 'INSERT INTO admins (username, password) VALUES (?,?)',
@@ -221,13 +235,10 @@ def init_db():
             )
         except sqlite3.IntegrityError:
             pass
-<<<<<<< HEAD
         try:
             conn.execute("INSERT INTO settings (key, value) VALUES ('reservation_enabled', '1')")
         except sqlite3.IntegrityError:
             pass
-=======
->>>>>>> bb05e0770d79d2721107efe3cee684d69393c7c9
         conn.commit()
 
 init_db()
@@ -805,10 +816,11 @@ def create_reservation():
         user = conn.execute('SELECT * FROM users WHERE id=?', (user_id,)).fetchone()
         if not user:
             return jsonify({'success': False, 'message': 'Student not found.'}), 404
+        pc_no = data.get('pc_no')
         conn.execute(
-            '''INSERT INTO reservations (user_id, id_number, fullname, purpose, lab, date, time_start, time_end, status)
-               VALUES (?,?,?,?,?,?,?,?,?)''',
-            (user_id, user['id_number'], user['fullname'], purpose, lab, date, time_start, time_end, 'Pending')
+            '''INSERT INTO reservations (user_id, id_number, fullname, purpose, lab, date, time_start, time_end, status, pc_no)
+               VALUES (?,?,?,?,?,?,?,?,?,?)''',
+            (user_id, user['id_number'], user['fullname'], purpose, lab, date, time_start, time_end, 'Pending', pc_no)
         )
         conn.commit()
     return jsonify({'success': True, 'message': 'Reservation submitted successfully!'})
@@ -927,81 +939,90 @@ def delete_reservation(rid):
 
 @app.route('/api/student/sit-in-summary', methods=['GET'])
 def get_sitin_summary():
-    """Returns user's sit-in statistics"""
-    user = session.get('user')
-    if not user:
+    """Returns user's sit-in statistics based on actual DB schema"""
+    user_id = session.get('user_id')
+    if not user_id:
         return jsonify({'error': 'Not logged in'}), 401
-    
+
     conn = get_db()
-    
-    # Get all sessions for this user
-    sessions = conn.execute(
-        '''SELECT * FROM sitin WHERE user_id=? AND status IN ('Active', 'Done')
-           ORDER BY created DESC''',
-        (user['id'],)
+    cols = [c['name'] for c in conn.execute('PRAGMA table_info(sitin)').fetchall()]
+
+    rows = conn.execute(
+        """SELECT s.*,
+                  r.time_start, r.time_end, r.date as res_date
+           FROM sitin s
+           LEFT JOIN reservations r
+             ON r.user_id = s.user_id
+            AND r.lab     = s.lab
+            AND r.purpose = s.purpose
+            AND DATE(r.created) = DATE(s.created)
+           WHERE s.user_id=? AND s.status IN ('Active', 'Done')
+           ORDER BY s.created DESC""",
+        (user_id,)
     ).fetchall()
-    
-    total_sessions = len(sessions)
+
+    total_sessions = len(rows)
+
+    has_duration = 'duration_minutes' in cols
+    has_pc       = 'pc_number' in cols
+
     durations = []
-    
-    for s in sessions:
-        if s['duration_minutes']:
-            durations.append(s['duration_minutes'])
-    
-<<<<<<< HEAD
-    total_minutes  = sum(durations)
-    total_hours    = round(total_minutes / 60, 1)
-    avg_duration   = round(statistics.mean(durations)) if durations else 0
+    for r in rows:
+        if has_duration and r['duration_minutes']:
+            durations.append(r['duration_minutes'])
+        elif r['time_start'] and r['time_end']:
+            # Calculate duration from reservation times
+            try:
+                from datetime import datetime as dt2
+                t1 = dt2.strptime(r['time_start'], '%H:%M')
+                t2 = dt2.strptime(r['time_end'],   '%H:%M')
+                diff = int((t2 - t1).total_seconds() / 60)
+                if diff > 0:
+                    durations.append(diff)
+            except:
+                pass
+
+    total_minutes   = sum(durations)
+    total_hours     = round(total_minutes / 60, 1) if durations else 0
+    avg_duration    = round(statistics.mean(durations)) if durations else 0
     longest_session = max(durations) if durations else 0
 
     sessions_data = []
-    for s in sessions:
+    for r in rows:
+        # Calculate duration for this row
+        dur = None
+        if has_duration and r['duration_minutes']:
+            dur = r['duration_minutes']
+        elif r['time_start'] and r['time_end']:
+            try:
+                from datetime import datetime as dt2
+                t1 = dt2.strptime(r['time_start'], '%H:%M')
+                t2 = dt2.strptime(r['time_end'],   '%H:%M')
+                diff = int((t2 - t1).total_seconds() / 60)
+                dur = diff if diff > 0 else None
+            except:
+                pass
+
         sessions_data.append({
-            'id':               s['id'],
-            'date':             s['created'][:10] if s['created'] else '',
-            'time_in':          s['time_in'],
-            'time_out':         s['time_out'],
-            'duration_minutes': s['duration_minutes'],
-            'pc_number':        s['pc_number'],
-            'lab':              s['lab'],
-            'purpose':          s['purpose'],
-            'status':           s['status'],
-            'remarks':          s['remarks']
+            'id':               r['id'],
+            'date':             r['res_date'] or (r['created'][:10] if r['created'] else ''),
+            'time_in':          r['time_start'] or '—',
+            'time_out':         r['time_end']   or '—',
+            'duration_minutes': dur,
+            'pc_number':        r['pc_number'] if has_pc else (r['session'] if 'session' in cols else '—'),
+            'lab':              r['lab'],
+            'purpose':          r['purpose'],
+            'status':           r['status'],
+            'remarks':          r['remarks'] if 'remarks' in cols else '',
         })
 
     conn.close()
 
     return jsonify({
         'summary': {
-            'total_sessions':         total_sessions,
-            'total_hours':            total_hours,
-            'avg_duration_minutes':   avg_duration,
-=======
-    avg_duration = round(statistics.mean(durations)) if durations else 0
-    longest_session = max(durations) if durations else 0
-    
-    sessions_data = []
-    for s in sessions:
-        sessions_data.append({
-            'id': s['id'],
-            'date': s['created'][:10] if s['created'] else '',
-            'time_in': s['time_in'],
-            'time_out': s['time_out'],
-            'duration_minutes': s['duration_minutes'],
-            'pc_number': s['pc_number'],
-            'lab': s['lab'],
-            'purpose': s['purpose'],
-            'status': s['status'],
-            'remarks': s['remarks']
-        })
-    
-    conn.close()
-    
-    return jsonify({
-        'summary': {
-            'total_sessions': total_sessions,
-            'avg_duration_minutes': avg_duration,
->>>>>>> bb05e0770d79d2721107efe3cee684d69393c7c9
+            'total_sessions':          total_sessions,
+            'total_hours':             total_hours,
+            'avg_duration_minutes':    avg_duration,
             'longest_session_minutes': longest_session
         },
         'sessions': sessions_data
@@ -1011,9 +1032,14 @@ def get_sitin_summary():
 @app.route('/api/student/sitin/start', methods=['POST'])
 def start_sitin():
     """Start a sit-in session - manual or auto"""
-    user = session.get('user')
-    if not user:
+    user_id = session.get('user_id')
+    if not user_id:
         return jsonify({'error': 'Not logged in'}), 401
+    conn_temp = get_db()
+    user = conn_temp.execute('SELECT * FROM users WHERE id=?', (user_id,)).fetchone()
+    conn_temp.close()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
     
     data = request.get_json() or {}
     lab = data.get('lab')
@@ -1043,9 +1069,14 @@ def start_sitin():
 @app.route('/api/student/sitin/<int:sid>/end', methods=['POST'])
 def end_sitin_session(sid):
     """End a sit-in session"""
-    user = session.get('user')
-    if not user:
+    user_id = session.get('user_id')
+    if not user_id:
         return jsonify({'error': 'Not logged in'}), 401
+    conn_temp = get_db()
+    user = conn_temp.execute('SELECT * FROM users WHERE id=?', (user_id,)).fetchone()
+    conn_temp.close()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
     
     data = request.get_json() or {}
     remarks = data.get('remarks', '')
@@ -1079,14 +1110,14 @@ def end_sitin_session(sid):
 @app.route('/api/student/history', methods=['GET'])
 def get_history():
     """Get detailed sit-in history for student"""
-    user = session.get('user')
-    if not user:
+    user_id = session.get('user_id')
+    if not user_id:
         return jsonify({'error': 'Not logged in'}), 401
     
     conn = get_db()
     sessions = conn.execute(
         '''SELECT * FROM sitin WHERE user_id=? ORDER BY created DESC''',
-        (user['id'],)
+        (user_id,)
     ).fetchall()
     
     sessions_data = []
@@ -1435,11 +1466,14 @@ def list_reports():
 @app.route('/api/student/recommendations', methods=['GET'])
 def get_recommendations():
     """Get AI-powered sit-in recommendations for student"""
-    user = session.get('user')
-    if not user:
+    user_id = session.get('user_id')
+    if not user_id:
         return jsonify({'error': 'Not logged in'}), 401
     
     conn = get_db()
+    user = conn.execute('SELECT * FROM users WHERE id=?', (user_id,)).fetchone()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
     
     # Get user's sit-in history
     sessions = conn.execute(
@@ -1536,19 +1570,59 @@ scheduler.add_job(func=auto_end_sitins, trigger='interval', minutes=1)
 scheduler.start()
 atexit.register(lambda: scheduler.shutdown())
 
+# ══════════════════════════════════════════════════════════
+#  PC AVAILABILITY
+# ══════════════════════════════════════════════════════════
 
-if __name__ == '__main__':
-    print("CCS Backend running — open http://127.0.0.1:5000 in your browser")
-<<<<<<< HEAD
-    app.run(debug=True, port=5000, use_reloader=False)
+@app.route('/api/lab/pcs', methods=['GET'])
+def get_lab_pcs():
+    """Return PCs for a lab, marking ones reserved at a given date/time as Taken."""
+    lab        = request.args.get('lab', '').strip()
+    date       = request.args.get('date', '')
+    time_start = request.args.get('time_start', '')
+    time_end   = request.args.get('time_end', '')
+
+    if not lab:
+        return jsonify({'error': 'Lab is required'}), 400
+
+    with get_db() as conn:
+        pcs = conn.execute(
+            'SELECT pc_no, status FROM computers WHERE lab=? ORDER BY pc_no', (lab,)
+        ).fetchall()
+
+        # Mark PCs that have conflicting approved/pending reservations
+        taken_pcs = set()
+        if date and time_start and time_end:
+            conflicts = conn.execute('''
+                SELECT pc_no FROM reservations
+                WHERE lab=? AND date=? AND status IN ("Approved","Pending")
+                  AND pc_no IS NOT NULL
+                  AND time_start < ? AND time_end > ?
+            ''', (lab, date, time_end, time_start)).fetchall()
+            taken_pcs = {r['pc_no'] for r in conflicts}
+
+        # Also mark PCs currently active in sitin
+        active = conn.execute(
+            "SELECT session FROM sitin WHERE lab=? AND status='Active'", (lab,)
+        ).fetchall()
+        taken_pcs.update(r['session'] for r in active if r['session'])
+
+    result = []
+    for pc in pcs:
+        result.append({
+            'pc_no':  pc['pc_no'],
+            'status': 'Taken' if pc['pc_no'] in taken_pcs else 'Available'
+        })
+
+    return jsonify({'lab': lab, 'pcs': result})
+
 # ══════════════════════════════════════════════════════════
 #  RESERVATION ENABLE / DISABLE  (admin control)
 # ══════════════════════════════════════════════════════════
 
 @app.route('/api/admin/settings/reservation', methods=['GET'])
 def get_reservation_setting():
-    admin = session.get('admin')
-    if not admin:
+    if not session.get('admin_id'):
         return jsonify({'error': 'Not admin'}), 401
     with get_db() as conn:
         row = conn.execute("SELECT value FROM settings WHERE key='reservation_enabled'").fetchone()
@@ -1557,8 +1631,7 @@ def get_reservation_setting():
 
 @app.route('/api/admin/settings/reservation', methods=['POST'])
 def set_reservation_setting():
-    admin = session.get('admin')
-    if not admin:
+    if not session.get('admin_id'):
         return jsonify({'error': 'Not admin'}), 401
     data    = request.get_json() or {}
     enabled = '1' if data.get('enabled') else '0'
@@ -1585,8 +1658,8 @@ def public_reservation_setting():
 
 @app.route('/api/testimonials', methods=['POST'])
 def submit_testimonial():
-    user = session.get('user')
-    if not user:
+    user_id = session.get('user_id')
+    if not user_id:
         return jsonify({'error': 'Not logged in'}), 401
     data    = request.get_json() or {}
     rating  = data.get('rating')
@@ -1596,16 +1669,19 @@ def submit_testimonial():
     if not (1 <= int(rating) <= 5):
         return jsonify({'success': False, 'error': 'Rating must be 1-5.'}), 400
     with get_db() as conn:
-        existing = conn.execute('SELECT id FROM testimonials WHERE user_id=?', (user['id'],)).fetchone()
+        user = conn.execute('SELECT * FROM users WHERE id=?', (user_id,)).fetchone()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        existing = conn.execute('SELECT id FROM testimonials WHERE user_id=?', (user_id,)).fetchone()
         if existing:
             conn.execute(
                 'UPDATE testimonials SET rating=?, message=?, is_approved=0, created=CURRENT_TIMESTAMP WHERE user_id=?',
-                (int(rating), message, user['id'])
+                (int(rating), message, user_id)
             )
         else:
             conn.execute(
                 'INSERT INTO testimonials (user_id, fullname, course, rating, message) VALUES (?,?,?,?,?)',
-                (user['id'], user['fullname'], user.get('course', ''), int(rating), message)
+                (user_id, user['fullname'], user['course'] or '', int(rating), message)
             )
         conn.commit()
     return jsonify({'success': True, 'message': 'Testimonial submitted! It will appear after admin approval.'})
@@ -1620,19 +1696,18 @@ def get_public_testimonials():
 
 @app.route('/api/student/testimonial', methods=['GET'])
 def get_my_testimonial():
-    user = session.get('user')
-    if not user:
+    user_id = session.get('user_id')
+    if not user_id:
         return jsonify({'error': 'Not logged in'}), 401
     with get_db() as conn:
         row = conn.execute(
-            'SELECT rating, message, is_approved FROM testimonials WHERE user_id=?', (user['id'],)
+            'SELECT rating, message, is_approved FROM testimonials WHERE user_id=?', (user_id,)
         ).fetchone()
     return jsonify(dict(row) if row else {})
 
 @app.route('/api/admin/testimonials', methods=['GET'])
 def admin_get_testimonials():
-    admin = session.get('admin')
-    if not admin:
+    if not session.get('admin_id'):
         return jsonify({'error': 'Not admin'}), 401
     with get_db() as conn:
         rows = conn.execute(
@@ -1642,8 +1717,7 @@ def admin_get_testimonials():
 
 @app.route('/api/admin/testimonials/<int:tid>/approve', methods=['POST'])
 def approve_testimonial(tid):
-    admin = session.get('admin')
-    if not admin:
+    if not session.get('admin_id'):
         return jsonify({'error': 'Not admin'}), 401
     with get_db() as conn:
         conn.execute('UPDATE testimonials SET is_approved=1 WHERE id=?', (tid,))
@@ -1652,13 +1726,13 @@ def approve_testimonial(tid):
 
 @app.route('/api/admin/testimonials/<int:tid>/reject', methods=['POST'])
 def reject_testimonial(tid):
-    admin = session.get('admin')
-    if not admin:
+    if not session.get('admin_id'):
         return jsonify({'error': 'Not admin'}), 401
     with get_db() as conn:
         conn.execute('DELETE FROM testimonials WHERE id=?', (tid,))
         conn.commit()
     return jsonify({'success': True})
-=======
+
+if __name__ == '__main__':
+    print("CCS Backend running — open http://127.0.0.1:5000 in your browser")
     app.run(debug=True, port=5000, use_reloader=False)
->>>>>>> bb05e0770d79d2721107efe3cee684d69393c7c9

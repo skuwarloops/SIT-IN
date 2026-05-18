@@ -165,7 +165,7 @@
     <div class="nav-brand">
       <img src="/images/uclogo.png" alt="UC Logo" class="nav-logo"/>
       <img src="/images/ccsmainlogo.png" alt="CCS Logo" class="nav-logo"/>
-      <span class="nav-title">College of Computer Studies Sit-in Monitoring System</span>
+      <span class="nav-title">CCS · Sit-in Monitoring System</span>
     </div>
     <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
     <ul class="nav-links" id="nav-links">
@@ -205,11 +205,11 @@
       <div class="testi-form-body">
         <div style="font-size:13px;color:var(--muted);margin-bottom:10px;font-weight:600;">Your Rating</div>
         <div class="star-row" id="star-row">
-          <button class="star-btn" data-val="1">★</button>
-          <button class="star-btn" data-val="2">★</button>
-          <button class="star-btn" data-val="3">★</button>
-          <button class="star-btn" data-val="4">★</button>
-          <button class="star-btn" data-val="5">★</button>
+          <button type="button" class="star-btn" data-val="1">★</button>
+          <button type="button" class="star-btn" data-val="2">★</button>
+          <button type="button" class="star-btn" data-val="3">★</button>
+          <button type="button" class="star-btn" data-val="4">★</button>
+          <button type="button" class="star-btn" data-val="5">★</button>
         </div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:8px;font-weight:600;">Your Message</div>
         <textarea class="testi-textarea" id="testi-msg" placeholder="Tell us about your experience..."></textarea>
@@ -237,7 +237,7 @@
   <script src="/js/landing.js"></script>
   <script src="/js/darkmode.js"></script>
   <script>
-    const API = 'http://127.0.0.1:5000/api';
+    const API = '/api';
 
     // ── Auth ──
     const stored = localStorage.getItem('ccs_user');
@@ -339,9 +339,9 @@
           statusEl.textContent = data.error || 'Submission failed.';
           statusEl.className = 'testi-status error';
         }
-      } catch {
-        statusEl.textContent = 'Could not connect to server.';
-        statusEl.className = 'testi-status error';
+      } catch (err) {
+  console.error(err);
+  statusEl.textContent = 'Could not connect to server.';
       }
 
       btn.disabled = false;

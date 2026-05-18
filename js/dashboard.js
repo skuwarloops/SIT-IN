@@ -264,20 +264,24 @@ pollNotifications();
 setInterval(pollNotifications, 15000);
 
 // ── INIT ───────────────────────────────────────────────
-<<<<<<< HEAD
 loadAnnouncements();
 // ══════════════════════════════════════════════════════
 //  SIT-IN SUMMARY + SESSIONS TABLE
 // ══════════════════════════════════════════════════════
 
 function fmtTime(dt) {
-  if (!dt) return '—';
-  try { return new Date(dt).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }); }
-  catch { return dt; }
+  if (!dt || dt === '—') return '—';
+  // If already HH:MM format, return as-is
+  if (/^\d{1,2}:\d{2}$/.test(dt.trim())) return dt.trim();
+  // Otherwise try parsing as full datetime
+  const d = new Date(dt);
+  if (isNaN(d.getTime())) return '—';
+  try { return d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }); }
+  catch { return '—'; }
 }
 
 function fmtDuration(mins) {
-  if (!mins) return '—';
+  if (mins == null || mins === 0 || mins === '—') return '—';
   const h = Math.floor(mins / 60);
   const m = mins % 60;
   if (h > 0) return `${h}h ${m}m`;
@@ -291,7 +295,7 @@ async function loadSitInSummary() {
     if (data.error) return;
 
     const s = data.summary;
-    document.getElementById('sum-total-hours').textContent = s.total_hours != null ? s.total_hours + 'h' : '0h';
+    document.getElementById('sum-total-hours').textContent = (s.total_hours && s.total_hours > 0) ? s.total_hours + 'h' : '—';
     document.getElementById('sum-sessions').textContent    = s.total_sessions ?? 0;
     document.getElementById('sum-avg').textContent         = fmtDuration(s.avg_duration_minutes);
     document.getElementById('sum-longest').textContent     = fmtDuration(s.longest_session_minutes);
@@ -319,6 +323,3 @@ async function loadSitInSummary() {
 }
 
 loadSitInSummary();
-=======
-loadAnnouncements();
->>>>>>> bb05e0770d79d2721107efe3cee684d69393c7c9
