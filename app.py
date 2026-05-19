@@ -16,9 +16,7 @@ CORS(app, supports_credentials=True, origins=[
 BASE = os.path.dirname(os.path.abspath(__file__))
 DB   = os.path.join(BASE, 'ccs.db')
 
-# ══════════════════════════════════════════════════════════
 #  STATIC FILE SERVING
-# ══════════════════════════════════════════════════════════
 
 @app.route('/')
 def index():
@@ -52,9 +50,7 @@ def serve_images(filename):
 def favicon():
     return send_from_directory(os.path.join(BASE, 'images'), 'favicon.ico')
 
-# ══════════════════════════════════════════════════════════
 #  DB INIT
-# ══════════════════════════════════════════════════════════
 
 def get_db():
     conn = sqlite3.connect(DB)
@@ -271,6 +267,10 @@ def init_db():
             conn.execute("INSERT INTO settings (key, value) VALUES ('reservation_enabled', '1')")
         except sqlite3.IntegrityError:
             pass
+        # Safely add pc_no to reservations if missing (schema migration)
+        res_cols = [c[1] for c in conn.execute('PRAGMA table_info(reservations)').fetchall()]
+        if 'pc_no' not in res_cols:
+            conn.execute('ALTER TABLE reservations ADD COLUMN pc_no INTEGER')
         conn.commit()
 
 init_db()
@@ -304,9 +304,7 @@ def push_notification_all(type, title, message):
 def valid_email(email):
     return re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email)
 
-# ══════════════════════════════════════════════════════════
 #  STUDENT AUTH
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -353,7 +351,6 @@ def register():
     except sqlite3.IntegrityError:
         return jsonify({'success': False, 'errors': {'email': 'Email or Student ID already registered.'}}), 400
 
-
 @app.route('/api/login', methods=['POST'])
 def login():
     data      = request.get_json()
@@ -390,12 +387,10 @@ def login():
         'remaining_session': user['remaining_session']
     }})
 
-
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()
     return jsonify({'success': True})
-
 
 @app.route('/api/me', methods=['GET'])
 def me():
@@ -420,10 +415,7 @@ def me():
         'remaining_session': user['remaining_session']
     }})
 
-
-# ══════════════════════════════════════════════════════════
 #  ADMIN AUTH
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():
@@ -441,13 +433,11 @@ def admin_login():
     session['admin_username'] = admin['username']
     return jsonify({'success': True, 'admin': {'id': admin['id'], 'username': admin['username']}})
 
-
 @app.route('/api/admin/logout', methods=['POST'])
 def admin_logout():
     session.pop('admin_id', None)
     session.pop('admin_username', None)
     return jsonify({'success': True})
-
 
 @app.route('/api/admin/me', methods=['GET'])
 def admin_me():
@@ -457,10 +447,7 @@ def admin_me():
         'id': session['admin_id'], 'username': session['admin_username']
     }})
 
-
-# ══════════════════════════════════════════════════════════
 #  ADMIN — STATISTICS
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/admin/stats', methods=['GET'])
 def get_stats():
@@ -478,10 +465,7 @@ def get_stats():
         'purpose_counts':  [dict(r) for r in purpose_counts]
     }})
 
-
-# ══════════════════════════════════════════════════════════
 #  ADMIN — STUDENTS
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/admin/students', methods=['GET'])
 def get_students():
@@ -490,7 +474,6 @@ def get_students():
             'SELECT id, id_number, lastname, firstname, middlename, fullname, email, course, level, address, remaining_session FROM users ORDER BY lastname, firstname'
         ).fetchall()
     return jsonify({'success': True, 'students': [dict(r) for r in rows]})
-
 
 @app.route('/api/admin/students', methods=['POST'])
 def add_student():
@@ -521,7 +504,6 @@ def add_student():
     except sqlite3.IntegrityError:
         return jsonify({'success': False, 'message': 'Email or ID already exists.'}), 400
 
-
 @app.route('/api/admin/students/<int:sid>', methods=['PUT'])
 def edit_student(sid):
     data       = request.get_json()
@@ -542,14 +524,12 @@ def edit_student(sid):
         conn.commit()
     return jsonify({'success': True, 'message': 'Student updated.'})
 
-
 @app.route('/api/admin/students/<int:sid>', methods=['DELETE'])
 def delete_student(sid):
     with get_db() as conn:
         conn.execute('DELETE FROM users WHERE id=?', (sid,))
         conn.commit()
     return jsonify({'success': True, 'message': 'Student deleted.'})
-
 
 @app.route('/api/admin/students/search', methods=['GET'])
 def search_students():
@@ -564,7 +544,6 @@ def search_students():
         ).fetchall()
     return jsonify({'success': True, 'students': [dict(r) for r in rows]})
 
-
 @app.route('/api/admin/students/reset-sessions', methods=['POST'])
 def reset_all_sessions():
     with get_db() as conn:
@@ -572,17 +551,13 @@ def reset_all_sessions():
         conn.commit()
     return jsonify({'success': True, 'message': 'All sessions reset to 30.'})
 
-
-# ══════════════════════════════════════════════════════════
 #  ADMIN — SIT-IN
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/admin/sitin', methods=['GET'])
 def get_sitin():
     with get_db() as conn:
         rows = conn.execute('SELECT * FROM sitin ORDER BY created DESC').fetchall()
     return jsonify({'success': True, 'records': [dict(r) for r in rows]})
-
 
 @app.route('/api/admin/sitin', methods=['POST'])
 def create_sitin():
@@ -615,7 +590,6 @@ def create_sitin():
                     'student': {'fullname': user['fullname'],
                                 'remaining_session': updated['remaining_session']}})
 
-
 @app.route('/api/admin/sitin/<int:sit_id>/end', methods=['POST'])
 def end_sitin(sit_id):
     with get_db() as conn:
@@ -628,7 +602,6 @@ def end_sitin(sit_id):
             f'Your sit-in session for {sit["purpose"]} in {sit["lab"]} has been ended.')
     return jsonify({'success': True, 'message': 'Sit-in ended.'})
 
-
 @app.route('/api/admin/sitin/<int:sit_id>', methods=['DELETE'])
 def delete_sitin(sit_id):
     with get_db() as conn:
@@ -636,17 +609,13 @@ def delete_sitin(sit_id):
         conn.commit()
     return jsonify({'success': True, 'message': 'Record deleted.'})
 
-
-# ══════════════════════════════════════════════════════════
 #  ADMIN — ANNOUNCEMENTS
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/admin/announcements', methods=['GET'])
 def get_announcements():
     with get_db() as conn:
         rows = conn.execute('SELECT * FROM announcements ORDER BY created DESC').fetchall()
     return jsonify({'success': True, 'announcements': [dict(r) for r in rows]})
-
 
 @app.route('/api/admin/announcements', methods=['POST'])
 def post_announcement():
@@ -664,7 +633,6 @@ def post_announcement():
     )
     return jsonify({'success': True, 'message': 'Announcement posted.'})
 
-
 @app.route('/api/admin/announcements/<int:aid>', methods=['DELETE'])
 def delete_announcement(aid):
     with get_db() as conn:
@@ -676,10 +644,7 @@ def delete_announcement(aid):
         conn.commit()
     return jsonify({'success': True, 'message': 'Deleted.'})
 
-
-# ══════════════════════════════════════════════════════════
 #  STUDENT — NOTIFICATIONS
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/notifications/<int:uid>', methods=['GET'])
 def get_notifications(uid):
@@ -689,7 +654,6 @@ def get_notifications(uid):
         ).fetchall()
     return jsonify({'success': True, 'notifications': [dict(r) for r in rows]})
 
-
 @app.route('/api/notifications/<int:uid>/unread-count', methods=['GET'])
 def get_unread_count(uid):
     with get_db() as conn:
@@ -698,14 +662,12 @@ def get_unread_count(uid):
         ).fetchone()[0]
     return jsonify({'success': True, 'count': count})
 
-
 @app.route('/api/notifications/<int:uid>/mark-read', methods=['POST'])
 def mark_all_read(uid):
     with get_db() as conn:
         conn.execute('UPDATE notifications SET is_read=1 WHERE user_id=?', (uid,))
         conn.commit()
     return jsonify({'success': True})
-
 
 @app.route('/api/notifications/<int:nid>/read', methods=['POST'])
 def mark_one_read(nid):
@@ -714,10 +676,7 @@ def mark_one_read(nid):
         conn.commit()
     return jsonify({'success': True})
 
-
-# ══════════════════════════════════════════════════════════
 #  STUDENT — EDIT PROFILE
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/profile/<int:uid>', methods=['PUT'])
 def update_profile(uid):
@@ -755,10 +714,7 @@ def update_profile(uid):
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 
-
-# ══════════════════════════════════════════════════════════
 #  STUDENT — SIT-IN HISTORY
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/history/<int:uid>', methods=['GET'])
 def get_student_history(uid):
@@ -776,10 +732,7 @@ def get_student_history(uid):
             history.append(d)
     return jsonify({'success': True, 'history': history})
 
-
-# ══════════════════════════════════════════════════════════
 #  STUDENT — FEEDBACK
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/feedback', methods=['POST'])
 def submit_feedback():
@@ -808,7 +761,6 @@ def submit_feedback():
 
     return jsonify({'success': True, 'message': 'Feedback submitted!'})
 
-
 @app.route('/api/admin/feedback', methods=['GET'])
 def get_all_feedback():
     with get_db() as conn:
@@ -823,10 +775,7 @@ def get_all_feedback():
         ''').fetchall()
     return jsonify({'success': True, 'feedback': [dict(r) for r in rows]})
 
-
-# ══════════════════════════════════════════════════════════
 #  STUDENT — RESERVATIONS
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/reservations', methods=['POST'])
 def create_reservation():
@@ -857,7 +806,6 @@ def create_reservation():
         conn.commit()
     return jsonify({'success': True, 'message': 'Reservation submitted successfully!'})
 
-
 @app.route('/api/reservations/<int:uid>', methods=['GET'])
 def get_my_reservations(uid):
     with get_db() as conn:
@@ -865,7 +813,6 @@ def get_my_reservations(uid):
             'SELECT * FROM reservations WHERE user_id=? ORDER BY created DESC', (uid,)
         ).fetchall()
     return jsonify({'success': True, 'reservations': [dict(r) for r in rows]})
-
 
 @app.route('/api/reservations/<int:rid>/cancel', methods=['POST'])
 def cancel_reservation(rid):
@@ -879,10 +826,7 @@ def cancel_reservation(rid):
         conn.commit()
     return jsonify({'success': True, 'message': 'Reservation cancelled.'})
 
-
-# ══════════════════════════════════════════════════════════
 #  ADMIN — RESERVATIONS
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/admin/reservations', methods=['GET'])
 def get_all_reservations():
@@ -891,7 +835,6 @@ def get_all_reservations():
             'SELECT * FROM reservations ORDER BY date ASC, time_start ASC'
         ).fetchall()
     return jsonify({'success': True, 'reservations': [dict(r) for r in rows]})
-
 
 @app.route('/api/admin/reservations/<int:rid>/approve', methods=['POST'])
 def approve_reservation(rid):
@@ -941,7 +884,6 @@ def approve_reservation(rid):
             f'Your reservation for {res["purpose"]} in {res["lab"]} on {res["date"]} has been approved.')
     return jsonify({'success': True, 'message': msg, 'sitin_created': sitin_created})
 
-
 @app.route('/api/admin/reservations/<int:rid>/reject', methods=['POST'])
 def reject_reservation(rid):
     with get_db() as conn:
@@ -954,7 +896,6 @@ def reject_reservation(rid):
             f'Your reservation for {res["purpose"]} in {res["lab"]} on {res["date"]} has been rejected.')
     return jsonify({'success': True, 'message': 'Reservation rejected.'})
 
-
 @app.route('/api/admin/reservations/<int:rid>', methods=['DELETE'])
 def delete_reservation(rid):
     with get_db() as conn:
@@ -962,16 +903,10 @@ def delete_reservation(rid):
         conn.commit()
     return jsonify({'success': True, 'message': 'Reservation deleted.'})
 
-
-
-
-# ══════════════════════════════════════════════════════════
 #  STUDENT FEATURES - SIT-IN SUMMARY & HISTORY
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/student/sit-in-summary', methods=['GET'])
 def get_sitin_summary():
-    """Returns user's sit-in statistics based on actual DB schema"""
     user_id = session.get('user_id')
     if not user_id:
         return jsonify({'error': 'Not logged in'}), 401
@@ -1060,10 +995,8 @@ def get_sitin_summary():
         'sessions': sessions_data
     })
 
-
 @app.route('/api/student/sitin/start', methods=['POST'])
 def start_sitin():
-    """Start a sit-in session - manual or auto"""
     user_id = session.get('user_id')
     if not user_id:
         return jsonify({'error': 'Not logged in'}), 401
@@ -1097,10 +1030,8 @@ def start_sitin():
     
     return jsonify({'success': True, 'sitin_id': sitin_id, 'time_in': time_in})
 
-
 @app.route('/api/student/sitin/<int:sid>/end', methods=['POST'])
 def end_sitin_session(sid):
-    """End a sit-in session"""
     user_id = session.get('user_id')
     if not user_id:
         return jsonify({'error': 'Not logged in'}), 401
@@ -1138,10 +1069,8 @@ def end_sitin_session(sid):
         'duration_minutes': duration
     })
 
-
 @app.route('/api/student/history', methods=['GET'])
 def get_history():
-    """Get detailed sit-in history for student"""
     user_id = session.get('user_id')
     if not user_id:
         return jsonify({'error': 'Not logged in'}), 401
@@ -1171,10 +1100,7 @@ def get_history():
     conn.close()
     return jsonify(sessions_data)
 
-
-# ══════════════════════════════════════════════════════════
 #  SOFTWARE AVAILABILITY
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/software/available', methods=['GET'])
 def get_available_software():
@@ -1207,7 +1133,6 @@ def get_available_software():
     conn.close()
     return jsonify(result)
 
-
 @app.route('/api/admin/software', methods=['GET'])
 def get_all_software():
     """Get all software (admin)"""
@@ -1231,7 +1156,6 @@ def get_all_software():
     
     conn.close()
     return jsonify(result)
-
 
 @app.route('/api/admin/software', methods=['POST'])
 def add_software():
@@ -1258,7 +1182,6 @@ def add_software():
     
     return jsonify({'success': True})
 
-
 @app.route('/api/admin/software/<int:sid>', methods=['PUT'])
 def update_software(sid):
     """Update software (admin)"""
@@ -1282,7 +1205,6 @@ def update_software(sid):
     
     return jsonify({'success': True})
 
-
 @app.route('/api/admin/software/<int:sid>', methods=['DELETE'])
 def delete_software(sid):
     """Delete software (admin)"""
@@ -1297,14 +1219,10 @@ def delete_software(sid):
     
     return jsonify({'success': True})
 
-
-# ══════════════════════════════════════════════════════════
 #  ANALYTICS & REPORTS
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/admin/analytics', methods=['GET'])
 def get_analytics():
-    """Get analytics data: usage patterns, peak hours, etc."""
     admin = session.get('admin')
     if not admin:
         return jsonify({'error': 'Not admin'}), 401
@@ -1383,7 +1301,6 @@ def get_analytics():
         'peak_days': peak_days,
         'lab_utilization': lab_util
     })
-
 
 @app.route('/api/admin/reports/generate', methods=['POST'])
 def generate_report():
@@ -1465,7 +1382,6 @@ def generate_report():
     conn.close()
     return jsonify({'error': 'PDF format not yet implemented'}), 501
 
-
 @app.route('/api/admin/reports/list', methods=['GET'])
 def list_reports():
     """List all generated reports"""
@@ -1490,14 +1406,10 @@ def list_reports():
     conn.close()
     return jsonify(result)
 
-
-# ══════════════════════════════════════════════════════════
 #  AI RECOMMENDATIONS
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/student/recommendations', methods=['GET'])
 def get_recommendations():
-    """Get AI-powered sit-in recommendations for student"""
     user_id = session.get('user_id')
     if not user_id:
         return jsonify({'error': 'Not logged in'}), 401
@@ -1569,11 +1481,7 @@ def get_recommendations():
         }
     ])
 
-
-# ══════════════════════════════════════════════════════════
 #  BACKGROUND SCHEDULER — AUTO-END SIT-INS
-# ══════════════════════════════════════════════════════════
-
 
 def auto_end_sitins():
     from datetime import datetime
@@ -1596,19 +1504,15 @@ def auto_end_sitins():
                 conn.execute("UPDATE sitin SET status='Done' WHERE id=?", (sitin['id'],))
         conn.commit()
 
-
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=auto_end_sitins, trigger='interval', minutes=1)
 scheduler.start()
 atexit.register(lambda: scheduler.shutdown())
 
-# ══════════════════════════════════════════════════════════
 #  PC AVAILABILITY
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/lab/pcs', methods=['GET'])
 def get_lab_pcs():
-    """Return PCs for a lab, marking ones reserved at a given date/time as Taken."""
     lab        = request.args.get('lab', '').strip()
     date       = request.args.get('date', '')
     time_start = request.args.get('time_start', '')
@@ -1654,9 +1558,7 @@ def get_lab_pcs():
         print(f"Error in get_lab_pcs: {e}")
         return jsonify({'error': 'Failed to load PCs', 'details': str(e)}), 500
 
-# ══════════════════════════════════════════════════════════
 #  RESERVATION ENABLE / DISABLE  (admin control)
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/admin/settings/reservation', methods=['GET'])
 def get_reservation_setting():
@@ -1690,9 +1592,7 @@ def public_reservation_setting():
     enabled = (row['value'] == '1') if row else True
     return jsonify({'reservation_enabled': enabled})
 
-# ══════════════════════════════════════════════════════════
 #  TESTIMONIALS
-# ══════════════════════════════════════════════════════════
 
 @app.route('/api/testimonials', methods=['POST'])
 def submit_testimonial():

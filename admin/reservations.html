@@ -60,6 +60,7 @@
                 <th>Lab</th>
                 <th>Date</th>
                 <th>Time</th>
+                <th>PC No.</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -149,6 +150,7 @@
           <td>${r.lab}</td>
           <td>${formatDate(r.date)}</td>
           <td>${r.time_start} – ${r.time_end}</td>
+          <td>${r.pc_no ? 'PC ' + r.pc_no : '—'}</td>
           <td>${statusBadge(r.status)}</td>
           <td>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
