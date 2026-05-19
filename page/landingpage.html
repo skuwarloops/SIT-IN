@@ -5,7 +5,239 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CCS | Home</title>
   <link rel="stylesheet" href="../css/landing.css"/>
+  <link rel="stylesheet" href="../css/darkmode.css"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Leaderboard section ── */
+    .leaderboard-section {
+      padding: 4rem 2rem;
+      margin: 0 auto;
+      max-width: 1400px;
+    }
+
+    .leaderboard-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .leaderboard-badge {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: rgba(217, 119, 6, 0.1);
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #d97706;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .leaderboard-header h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #fff;
+    }
+
+    .leaderboard-header p {
+      font-size: 1rem;
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    /* Light mode overrides for leaderboard text */
+    body.light-mode .leaderboard-header h2 { color: var(--text); }
+
+    .podium-container {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 3rem;
+      min-height: 350px;
+      flex-wrap: wrap;
+    }
+
+    .podium-spot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .podium-rank {
+      width: 110px;
+      height: 110px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      text-align: center;
+      font-size: 2.5rem;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .rank-1 {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      height: 160px;
+      width: 130px;
+      order: 2;
+    }
+
+    .rank-2 {
+      background: linear-gradient(135deg, #c7d2fe, #a5b4fc);
+      height: 130px;
+      width: 110px;
+      order: 1;
+    }
+
+    .rank-3 {
+      background: linear-gradient(135deg, #fca5a5, #f87171);
+      height: 100px;
+      width: 110px;
+      order: 3;
+    }
+
+    .podium-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .podium-info { text-align: center; width: 100%; }
+
+    .podium-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.25rem;
+      line-height: 1.3;
+    }
+    body.light-mode .podium-name { color: var(--text); }
+
+    .podium-id {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      margin-bottom: 0.5rem;
+    }
+
+    .podium-points {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #f59e0b;
+    }
+
+    /* Leaderboard table */
+    .leaderboard-table-wrapper {
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--card-bg);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .leaderboard-table { width: 100%; border-collapse: collapse; }
+
+    .leaderboard-table thead {
+      background: rgba(255,255,255,0.04);
+      border-bottom: 1px solid var(--card-border);
+    }
+    body.light-mode .leaderboard-table thead { background: #f9fafb; }
+
+    .leaderboard-table th {
+      padding: 1.25rem 1rem;
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+    }
+
+    .leaderboard-table tbody tr {
+      border-bottom: 1px solid var(--card-border);
+      transition: background 0.2s ease;
+    }
+
+    .leaderboard-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+    body.light-mode .leaderboard-table tbody tr:hover { background: #f9fafb; }
+
+    .leaderboard-table td {
+      padding: 1.25rem 1rem;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .rank-cell { display: flex; align-items: center; gap: 1rem; }
+
+    .rank-badge {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+    }
+    body.light-mode .rank-badge { background: #f3f4f6; color: #6b7280; }
+
+    .student-column { display: flex; flex-direction: column; gap: 0.25rem; }
+    .student-name   { font-weight: 600; color: var(--text); }
+    .student-id     { font-size: 0.85rem; color: var(--muted); }
+
+    .metric-cell  { text-align: center; color: var(--muted); font-size: 0.95rem; }
+    .points-cell  { text-align: right; font-weight: 700; color: #f59e0b; font-size: 1rem; }
+
+    .session-tag {
+      display: inline-block;
+      padding: 0.375rem 0.75rem;
+      background: rgba(99,102,241,0.15);
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #818cf8;
+    }
+    body.light-mode .session-tag { background: #eef2ff; color: #6366f1; }
+
+    .empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); }
+    .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+
+    .fade-in { animation: fadeIn 0.5s ease-out; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .loading { text-align: center; padding: 3rem 2rem; color: var(--muted); font-size: 1rem; }
+
+    @media (max-width: 768px) {
+      .leaderboard-section { padding: 2rem 1rem; }
+      .leaderboard-header h2 { font-size: 2rem; }
+      .podium-container { gap: 1rem; min-height: 300px; }
+      .podium-rank { width: 85px; height: 85px; font-size: 2rem; }
+      .rank-1 { width: 100px; height: 130px; }
+      .rank-2 { width: 85px;  height: 105px; }
+      .rank-3 { width: 85px;  height: 80px; }
+      .podium-name { font-size: 0.9rem; }
+      .podium-points { font-size: 1rem; }
+      .leaderboard-table th,
+      .leaderboard-table td { padding: 0.75rem 0.5rem; font-size: 0.85rem; }
+      .rank-badge { width: 36px; height: 36px; font-size: 0.95rem; }
+      .student-name { font-size: 0.9rem; }
+    }
+  </style>
 </head>
 <body>
 
@@ -19,7 +251,7 @@
     <ul class="nav-links" id="nav-links">
       <li><a href="landingpage.html" class="nav-link active">Home</a></li>
       <li><a href="/page/dashboard.html" class="nav-link active">Dashboard</a></li>
-      <li><a href="/page/leaderboard.html" class="nav-item active">Leaderboard</a></li>
+
       <li class="dropdown">
         <a href="community.html" class="nav-link dropdown-toggle" id="communityToggle">Community ▾</a>
         <ul class="dropdown-menu" id="communityMenu">
@@ -29,13 +261,20 @@
         </ul>
       </li>
       <li><a href="#about" class="nav-link">About</a></li>
-      <!-- Dynamically replaced by JS below -->
+
+      <!-- Dark mode toggle -->
+      <li>
+        <button class="dark-mode-toggle" id="darkModeToggle" title="Toggle dark/light mode" aria-label="Toggle theme">🌙</button>
+      </li>
+
+      <!-- Auth: guest -->
       <li id="nav-auth-guest">
         <a href="/login-register/index.html" class="nav-link">Login</a>
       </li>
       <li id="nav-auth-guest2">
         <a href="/login-register/index.html" class="nav-btn">Register</a>
       </li>
+      <!-- Auth: logged-in user -->
       <li id="nav-auth-user" style="display:none;">
         <div class="nav-user">
           <div class="nav-user-avatar" id="nav-avatar">?</div>
@@ -48,6 +287,7 @@
     </ul>
   </nav>
 
+  <!-- ── HERO ─────────────────────────────────────────── -->
   <section class="hero">
     <div class="hero-bg"></div>
     <div class="hero-content">
@@ -86,6 +326,7 @@
     </div>
   </section>
 
+  <!-- ── FEATURES ─────────────────────────────────────── -->
   <section class="features" id="about">
     <div class="features-inner">
       <div class="section-label">What We Offer</div>
@@ -115,6 +356,19 @@
     </div>
   </section>
 
+  <!-- ── LEADERBOARD ──────────────────────────────────── -->
+  <section class="leaderboard-section" id="leaderboard">
+    <div class="leaderboard-header">
+      <span class="leaderboard-badge">🏆 Top performers</span>
+      <h2>Student Leaderboard</h2>
+      <p>Recognizing our most dedicated sit-in participants</p>
+    </div>
+    <div id="leaderboardContent">
+      <div class="loading">Loading leaderboard data...</div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ───────────────────────────────────────── -->
   <footer class="footer">
     <div class="footer-logos">
       <img src="../images/uclogo.png" alt="UC" class="footer-logo"/>
@@ -125,13 +379,163 @@
 
   <script src="/js/landing.js"></script>
   <script>
-    // ── SESSION-AWARE NAVBAR ───────────────────────────
+    // ── DARK / LIGHT MODE ─────────────────────────────────────────
+    const toggleBtn = document.getElementById('darkModeToggle');
+
+    function applyTheme(isLight) {
+      if (isLight) {
+        document.body.classList.add('light-mode');
+        toggleBtn.textContent = '🌙';
+        toggleBtn.title = 'Switch to dark mode';
+      } else {
+        document.body.classList.remove('light-mode');
+        toggleBtn.textContent = '☀️';
+        toggleBtn.title = 'Switch to light mode';
+      }
+    }
+
+    // Load saved preference (default = dark)
+    const savedTheme = localStorage.getItem('ccs_theme');
+    applyTheme(savedTheme === 'light');
+
+    toggleBtn.addEventListener('click', () => {
+      const isNowLight = !document.body.classList.contains('light-mode');
+      localStorage.setItem('ccs_theme', isNowLight ? 'light' : 'dark');
+      applyTheme(isNowLight);
+    });
+
+    // ── LEADERBOARD ───────────────────────────────────────────────
+    const mockLeaderboardData = [
+      { rank: 1, fullname: 'Christian Gutierrez',        id_number: '23822398',    total_points: 503,   sitin_count: 5, total_minutes: 180  },
+      { rank: 2, fullname: 'Juhnmarc Castanares',        id_number: '222222',      total_points: 28843, sitin_count: 3, total_minutes: 2875 },
+      { rank: 3, fullname: 'Earl Stephen Guinita',       id_number: '21443783',    total_points: 101,   sitin_count: 1, total_minutes: 60   },
+      { rank: 4, fullname: 'Jane Doe',                   id_number: '23-1111-111', total_points: 280,   sitin_count: 1, total_minutes: 180  },
+      { rank: 5, fullname: 'Liam John Gomez',            id_number: '2311144',     total_points: 102,   sitin_count: 1, total_minutes: 120  },
+      { rank: 6, fullname: 'Emmanuel Andrade',           id_number: '23779457',    total_points: 105,   sitin_count: 1, total_minutes: 300  },
+      { rank: 7, fullname: 'John Nicholas De la Calzada',id_number: '23783327',    total_points: 103,   sitin_count: 1, total_minutes: 180  }
+    ];
+
+    function formatTime(minutes) {
+      const hours = Math.floor(minutes / 60);
+      const mins  = minutes % 60;
+      return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function renderLeaderboard(data) {
+      if (!data || data.length === 0) {
+        return '<div class="empty-state"><span class="empty-state-icon">📊</span><p>No leaderboard data available yet.</p></div>';
+      }
+
+      const top3 = data.slice(0, 3);
+      const rest  = data.slice(3);
+
+      let html = '<div class="fade-in"><div class="podium-container">';
+
+      if (top3[1]) {
+        const p = top3[1];
+        html += `<div class="podium-spot">
+          <div class="podium-rank rank-2">2</div>
+          <div class="podium-info">
+            <div class="podium-name">${escapeHtml(p.fullname)}</div>
+            <div class="podium-id">${escapeHtml(p.id_number)}</div>
+            <div class="podium-points">${p.total_points} pts</div>
+          </div>
+        </div>`;
+      }
+
+      if (top3[0]) {
+        const p = top3[0];
+        html += `<div class="podium-spot">
+          <div class="podium-rank rank-1">1</div>
+          <div class="podium-info">
+            <div class="podium-name">${escapeHtml(p.fullname)}</div>
+            <div class="podium-id">${escapeHtml(p.id_number)}</div>
+            <div class="podium-points">${p.total_points} pts</div>
+          </div>
+        </div>`;
+      }
+
+      if (top3[2]) {
+        const p = top3[2];
+        html += `<div class="podium-spot">
+          <div class="podium-rank rank-3">3</div>
+          <div class="podium-info">
+            <div class="podium-name">${escapeHtml(p.fullname)}</div>
+            <div class="podium-id">${escapeHtml(p.id_number)}</div>
+            <div class="podium-points">${p.total_points} pts</div>
+          </div>
+        </div>`;
+      }
+
+      html += '</div>';
+
+      if (rest.length > 0) {
+        html += `<div class="leaderboard-table-wrapper">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Student</th>
+                <th>Sessions</th>
+                <th>Total Time</th>
+                <th>Points</th>
+              </tr>
+            </thead>
+            <tbody>`;
+
+        rest.forEach(s => {
+          html += `<tr>
+            <td><div class="rank-cell"><span class="rank-badge">${s.rank}</span></div></td>
+            <td>
+              <div class="student-column">
+                <span class="student-name">${escapeHtml(s.fullname)}</span>
+                <span class="student-id">${escapeHtml(s.id_number)}</span>
+              </div>
+            </td>
+            <td class="metric-cell">
+              <span class="session-tag">${s.sitin_count} session${s.sitin_count !== 1 ? 's' : ''}</span>
+            </td>
+            <td class="metric-cell">${formatTime(s.total_minutes)}</td>
+            <td class="points-cell">${s.total_points} pts</td>
+          </tr>`;
+        });
+
+        html += '</tbody></table></div>';
+      }
+
+      html += '</div>';
+      return html;
+    }
+
+    async function loadLeaderboard() {
+      try {
+        const response = await fetch('/api/leaderboard');
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('leaderboardContent').innerHTML = renderLeaderboard(data);
+        } else {
+          setTimeout(() => {
+            document.getElementById('leaderboardContent').innerHTML = renderLeaderboard(mockLeaderboardData);
+          }, 500);
+        }
+      } catch {
+        setTimeout(() => {
+          document.getElementById('leaderboardContent').innerHTML = renderLeaderboard(mockLeaderboardData);
+        }, 500);
+      }
+    }
+
+    // ── SESSION-AWARE NAVBAR ──────────────────────────────────────
     const storedUser  = localStorage.getItem('ccs_user');
     const storedAdmin = localStorage.getItem('ccs_admin');
 
     if (storedUser) {
       const user = JSON.parse(storedUser);
-      // Hide guest links, show user info
       document.getElementById('nav-auth-guest').style.display  = 'none';
       document.getElementById('nav-auth-guest2').style.display = 'none';
       document.getElementById('nav-auth-user').style.display   = 'list-item';
@@ -145,7 +549,6 @@
         window.location.href = '/login-register/index.html';
       });
     } else if (storedAdmin) {
-      // Admin is browsing landing — show admin name + logout
       const admin = JSON.parse(storedAdmin);
       document.getElementById('nav-auth-guest').style.display  = 'none';
       document.getElementById('nav-auth-guest2').style.display = 'none';
@@ -160,6 +563,8 @@
         window.location.href = '/login-register/index.html';
       });
     }
+
+    document.addEventListener('DOMContentLoaded', loadLeaderboard);
   </script>
 </body>
 </html>

@@ -267,10 +267,28 @@ def init_db():
             conn.execute("INSERT INTO settings (key, value) VALUES ('reservation_enabled', '1')")
         except sqlite3.IntegrityError:
             pass
-        # Safely add pc_no to reservations if missing (schema migration)
+
+        # ── Schema migrations ─────────────────────────────────────────────
+        # Safely add missing columns to sitin (for existing databases)
+        sitin_cols = [c[1] for c in conn.execute('PRAGMA table_info(sitin)').fetchall()]
+        if 'duration_minutes' not in sitin_cols:
+            conn.execute('ALTER TABLE sitin ADD COLUMN duration_minutes INTEGER')
+        if 'time_in' not in sitin_cols:
+            conn.execute('ALTER TABLE sitin ADD COLUMN time_in DATETIME')
+        if 'time_out' not in sitin_cols:
+            conn.execute('ALTER TABLE sitin ADD COLUMN time_out DATETIME')
+        if 'pc_number' not in sitin_cols:
+            conn.execute('ALTER TABLE sitin ADD COLUMN pc_number TEXT')
+        if 'remarks' not in sitin_cols:
+            conn.execute('ALTER TABLE sitin ADD COLUMN remarks TEXT')
+        if 'is_manual' not in sitin_cols:
+            conn.execute('ALTER TABLE sitin ADD COLUMN is_manual INTEGER DEFAULT 1')
+
+        # Safely add pc_no to reservations if missing
         res_cols = [c[1] for c in conn.execute('PRAGMA table_info(reservations)').fetchall()]
         if 'pc_no' not in res_cols:
             conn.execute('ALTER TABLE reservations ADD COLUMN pc_no INTEGER')
+
         conn.commit()
 
 init_db()
@@ -1683,7 +1701,7 @@ def calculate_student_points():
         for user in users:
             user_id = user['id']
             sitin_records = conn.execute(
-                'SELECT COUNT(*) as count, COALESCE(SUM(duration_minutes), 0) as total_mins FROM sitin WHERE user_id=? AND status="Active"',
+                'SELECT COUNT(*) as count, COALESCE(SUM(duration_minutes), 0) as total_mins FROM sitin WHERE user_id=? AND status IN ("Active", "Done")',
                 (user_id,)
             ).fetchone()
             
