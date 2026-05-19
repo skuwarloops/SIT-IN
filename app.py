@@ -228,6 +228,38 @@ def init_db():
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS student_points (
+                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id       INTEGER NOT NULL UNIQUE,
+                id_number     TEXT,
+                fullname      TEXT,
+                total_points  INTEGER DEFAULT 0,
+                sitin_count   INTEGER DEFAULT 0,
+                total_minutes INTEGER DEFAULT 0,
+                last_updated  DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS lab_availability (
+                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                lab_name      TEXT NOT NULL UNIQUE,
+                total_pcs     INTEGER DEFAULT 40,
+                available_pcs INTEGER DEFAULT 40,
+                last_updated  DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        # Seed lab availability
+        labs = ['Lab 524', 'Lab 526', 'Lab 528', 'Lab 530', 'Lab 540']
+        for lab in labs:
+            try:
+                conn.execute(
+                    'INSERT INTO lab_availability (lab_name, total_pcs, available_pcs) VALUES (?,?,?)',
+                    (lab, 40, 40)
+                )
+            except sqlite3.IntegrityError:
+                pass
         try:
             conn.execute(
                 'INSERT INTO admins (username, password) VALUES (?,?)',
@@ -1585,36 +1617,42 @@ def get_lab_pcs():
     if not lab:
         return jsonify({'error': 'Lab is required'}), 400
 
-    with get_db() as conn:
-        pcs = conn.execute(
-            'SELECT pc_no, status FROM computers WHERE lab=? ORDER BY pc_no', (lab,)
-        ).fetchall()
+    try:
+        with get_db() as conn:
+            # Get all PCs in the lab
+            pcs = conn.execute(
+                'SELECT id, pc_no, status FROM computers WHERE lab=? ORDER BY pc_no', (lab,)
+            ).fetchall()
 
-        # Mark PCs that have conflicting approved/pending reservations
-        taken_pcs = set()
-        if date and time_start and time_end:
-            conflicts = conn.execute('''
-                SELECT pc_no FROM reservations
-                WHERE lab=? AND date=? AND status IN ("Approved","Pending")
-                  AND pc_no IS NOT NULL
-                  AND time_start < ? AND time_end > ?
-            ''', (lab, date, time_end, time_start)).fetchall()
-            taken_pcs = {r['pc_no'] for r in conflicts}
+            # Mark PCs that have conflicting approved/pending reservations
+            taken_pcs = set()
+            if date and time_start and time_end:
+                conflicts = conn.execute('''
+                    SELECT pc_no FROM reservations
+                    WHERE lab=? AND date=? AND status IN ("Approved","Pending")
+                      AND pc_no IS NOT NULL
+                      AND time_start < ? AND time_end > ?
+                ''', (lab, date, time_end, time_start)).fetchall()
+                taken_pcs = {r['pc_no'] for r in conflicts if r['pc_no']}
 
-        # Also mark PCs currently active in sitin
-        active = conn.execute(
-            "SELECT session FROM sitin WHERE lab=? AND status='Active'", (lab,)
-        ).fetchall()
-        taken_pcs.update(r['session'] for r in active if r['session'])
+            # Also mark PCs currently active in sitin
+            active = conn.execute(
+                "SELECT pc_number FROM sitin WHERE lab=? AND status='Active'", (lab,)
+            ).fetchall()
+            taken_pcs.update(r['pc_number'] for r in active if r['pc_number'])
 
-    result = []
-    for pc in pcs:
-        result.append({
-            'pc_no':  pc['pc_no'],
-            'status': 'Taken' if pc['pc_no'] in taken_pcs else 'Available'
-        })
+        result = []
+        for pc in pcs:
+            result.append({
+                'pc_no':  pc['pc_no'],
+                'status': 'Taken' if pc['pc_no'] in taken_pcs else 'Available'
+            })
 
-    return jsonify({'lab': lab, 'pcs': result})
+        return jsonify({'lab': lab, 'pcs': result})
+    
+    except Exception as e:
+        print(f"Error in get_lab_pcs: {e}")
+        return jsonify({'error': 'Failed to load PCs', 'details': str(e)}), 500
 
 # ══════════════════════════════════════════════════════════
 #  RESERVATION ENABLE / DISABLE  (admin control)
@@ -1732,6 +1770,184 @@ def reject_testimonial(tid):
         conn.execute('DELETE FROM testimonials WHERE id=?', (tid,))
         conn.commit()
     return jsonify({'success': True})
+
+# ══════════════════════════════════════════════════════════
+#  POINTS SYSTEM & LEADERBOARD
+# ══════════════════════════════════════════════════════════
+
+def calculate_student_points():
+    """Calculate and update points for all students based on sit-in records"""
+    with get_db() as conn:
+        # Get all students with their sit-in records
+        users = conn.execute('SELECT id, id_number, fullname FROM users').fetchall()
+        for user in users:
+            user_id = user['id']
+            sitin_records = conn.execute(
+                'SELECT COUNT(*) as count, COALESCE(SUM(duration_minutes), 0) as total_mins FROM sitin WHERE user_id=? AND status="Active"',
+                (user_id,)
+            ).fetchone()
+            
+            count = sitin_records['count'] or 0
+            total_mins = sitin_records['total_mins'] or 0
+            # Points = (number of sessions * 10) + (total minutes / 60)
+            points = (count * 10) + int(total_mins / 60)
+            
+            # Check if student already exists in points table
+            existing = conn.execute('SELECT id FROM student_points WHERE user_id=?', (user_id,)).fetchone()
+            if existing:
+                conn.execute(
+                    'UPDATE student_points SET total_points=?, sitin_count=?, total_minutes=?, last_updated=CURRENT_TIMESTAMP WHERE user_id=?',
+                    (points, count, total_mins, user_id)
+                )
+            else:
+                conn.execute(
+                    'INSERT INTO student_points (user_id, id_number, fullname, total_points, sitin_count, total_minutes) VALUES (?,?,?,?,?,?)',
+                    (user_id, user['id_number'], user['fullname'], points, count, total_mins)
+                )
+        conn.commit()
+
+@app.route('/api/leaderboard', methods=['GET'])
+def get_leaderboard():
+    """Get the leaderboard of students with most sit-in points"""
+    # Recalculate points first
+    calculate_student_points()
+    
+    with get_db() as conn:
+        rows = conn.execute('''
+            SELECT 
+                user_id, id_number, fullname, total_points, sitin_count, total_minutes, last_updated
+            FROM student_points
+            WHERE total_points > 0
+            ORDER BY total_points DESC
+            LIMIT 100
+        ''').fetchall()
+    
+    leaderboard = []
+    for idx, row in enumerate(rows, 1):
+        leaderboard.append({
+            'rank': idx,
+            'user_id': row['user_id'],
+            'id_number': row['id_number'],
+            'fullname': row['fullname'],
+            'total_points': row['total_points'],
+            'sitin_count': row['sitin_count'],
+            'total_minutes': row['total_minutes'],
+            'last_updated': row['last_updated']
+        })
+    
+    return jsonify(leaderboard)
+
+@app.route('/api/student/points', methods=['GET'])
+def get_student_points():
+    """Get current user's points and rank"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Not logged in'}), 401
+    
+    # Recalculate to ensure accuracy
+    calculate_student_points()
+    
+    with get_db() as conn:
+        user_points = conn.execute(
+            'SELECT * FROM student_points WHERE user_id=?', (user_id,)
+        ).fetchone()
+        
+        if not user_points:
+            return jsonify({'points': 0, 'rank': None, 'sitin_count': 0, 'total_minutes': 0})
+        
+        # Get rank
+        rank = conn.execute(
+            'SELECT COUNT(*) as count FROM student_points WHERE total_points > ?',
+            (user_points['total_points'],)
+        ).fetchone()['count'] + 1
+        
+    return jsonify({
+        'points': user_points['total_points'],
+        'rank': rank,
+        'sitin_count': user_points['sitin_count'],
+        'total_minutes': user_points['total_minutes']
+    })
+
+# ══════════════════════════════════════════════════════════
+#  LAB AVAILABILITY
+# ══════════════════════════════════════════════════════════
+
+def update_lab_availability():
+    """Update lab availability based on active sit-in sessions"""
+    with get_db() as conn:
+        labs = ['Lab 524', 'Lab 526', 'Lab 528', 'Lab 530', 'Lab 540']
+        for lab in labs:
+            # Count active sessions in this lab
+            active_count = conn.execute(
+                'SELECT COUNT(*) as count FROM sitin WHERE lab=? AND status="Active"',
+                (lab,)
+            ).fetchone()['count'] or 0
+            
+            available = max(0, 40 - active_count)
+            
+            existing = conn.execute('SELECT id FROM lab_availability WHERE lab_name=?', (lab,)).fetchone()
+            if existing:
+                conn.execute(
+                    'UPDATE lab_availability SET available_pcs=?, last_updated=CURRENT_TIMESTAMP WHERE lab_name=?',
+                    (available, lab)
+                )
+            else:
+                conn.execute(
+                    'INSERT INTO lab_availability (lab_name, total_pcs, available_pcs) VALUES (?,?,?)',
+                    (lab, 40, available)
+                )
+        conn.commit()
+
+@app.route('/api/lab-availability', methods=['GET'])
+def get_lab_availability():
+    """Get current availability of all labs"""
+    update_lab_availability()
+    
+    with get_db() as conn:
+        rows = conn.execute(
+            'SELECT lab_name, total_pcs, available_pcs, last_updated FROM lab_availability ORDER BY lab_name'
+        ).fetchall()
+    
+    labs = []
+    for row in rows:
+        occupied = row['total_pcs'] - row['available_pcs']
+        occupancy_rate = (occupied / row['total_pcs'] * 100) if row['total_pcs'] > 0 else 0
+        
+        labs.append({
+            'lab_name': row['lab_name'],
+            'total_pcs': row['total_pcs'],
+            'available_pcs': row['available_pcs'],
+            'occupied_pcs': occupied,
+            'occupancy_rate': round(occupancy_rate, 1),
+            'last_updated': row['last_updated']
+        })
+    
+    return jsonify(labs)
+
+@app.route('/api/lab-availability/<lab_name>', methods=['GET'])
+def get_specific_lab_availability(lab_name):
+    """Get availability for a specific lab"""
+    update_lab_availability()
+    
+    with get_db() as conn:
+        row = conn.execute(
+            'SELECT * FROM lab_availability WHERE lab_name=?', (lab_name,)
+        ).fetchone()
+    
+    if not row:
+        return jsonify({'error': 'Lab not found'}), 404
+    
+    occupied = row['total_pcs'] - row['available_pcs']
+    occupancy_rate = (occupied / row['total_pcs'] * 100) if row['total_pcs'] > 0 else 0
+    
+    return jsonify({
+        'lab_name': row['lab_name'],
+        'total_pcs': row['total_pcs'],
+        'available_pcs': row['available_pcs'],
+        'occupied_pcs': occupied,
+        'occupancy_rate': round(occupancy_rate, 1),
+        'last_updated': row['last_updated']
+    })
 
 if __name__ == '__main__':
     print("CCS Backend running — open http://127.0.0.1:5000 in your browser")

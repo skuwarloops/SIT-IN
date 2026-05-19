@@ -1,18 +1,24 @@
 :root {
+  /* ── Brand colours ── */
   --navy:        #1a4a8a;
   --navy-dark:   #0d3b7a;
   --navy-deeper: #072660;
-  --purple:      #5b2d8e;
+  --purple:      #6d28d9;
   --gold:        #c9a227;
   --gold-light:  #f0cd6e;
-  --bg:          #07101e;
-  --text:        #dce8f8;
+
+  /* ── Dark theme (default) ── */
+  --bg:          #0b1120;
+  --text:        #e2e8f0;
   --muted:       #7a9bbf;
-  --card-bg:     #0d1e35;
-  --card-border: #1a3558;
+  --card-bg:     #111827;
+  --card-border: #1f2f48;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+select { color-scheme: dark; }
+body.light-mode select { color-scheme: light; }
 
 html { scroll-behavior: smooth; }
 
@@ -526,4 +532,32 @@ body {
   border-color: #ef4444;
   color: #f87171;
   background: rgba(239,68,68,0.08);
+}
+
+.dark-mode-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.15s, border-color 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+  line-height: 1;
+  min-width: 36px;
+}
+.dark-mode-toggle:empty::before {
+  content: '☀️';
+  font-size: 16px;
+}
+.dark-mode-toggle:hover {
+  background: rgba(255,255,255,0.16);
+  border-color: rgba(255,255,255,0.35);
+  transform: rotate(20deg) scale(1.1);
 }

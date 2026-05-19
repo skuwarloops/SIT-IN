@@ -6,8 +6,269 @@
   <title>CCS | My Reservations</title>
   <link rel="stylesheet" href="/css/landing.css"/>
   <link rel="stylesheet" href="/css/dashboard.css"/>
-  <link rel="stylesheet" href="/css/reservation.css"/>
+  <link rel="stylesheet" href="/css/darkmode.css"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    .resv-page {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      max-width: 1200px;
+      margin: 32px auto 60px;
+      padding: 0 24px;
+      align-items: start;
+    }
+    .resv-form-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .resv-panel-header {
+      background: linear-gradient(135deg, var(--navy-dark), var(--purple));
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 14px 20px;
+    }
+    .resv-form-body { padding: 20px; }
+    .resv-field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .resv-field-row.full { grid-template-columns: 1fr; }
+    .resv-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .resv-field select,
+    .resv-field input[type="date"],
+    .resv-field input[type="time"] {
+      width: 100%;
+      padding: 9px 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 9px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    .resv-field select:focus,
+    .resv-field input:focus { outline: none; border-color: var(--purple); }
+    .lab-row-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .lab-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .lab-tab {
+      padding: 6px 16px;
+      border-radius: 8px;
+      border: 1.5px solid var(--card-border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .lab-tab:hover { border-color: var(--purple); color: var(--text); }
+    .lab-tab.active { background: var(--purple); border-color: var(--purple); color: #fff; }
+    .pc-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--card-border);
+      margin-bottom: 10px;
+    }
+    .pc-legend { display: flex; gap: 14px; margin-left: auto; }
+    .pc-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .pc-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .pc-dot-avail    { background: #22c55e; }
+    .pc-dot-taken    { background: #ef4444; }
+    .pc-dot-selected { background: #8b5cf6; }
+    .pc-instructor {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      padding: 6px;
+      border: 1px dashed var(--card-border);
+      border-radius: 7px;
+      margin-bottom: 10px;
+    }
+    .pc-row-label { font-size: 11px; color: var(--muted); font-weight: 600; margin: 10px 0 5px; }
+    .pc-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 5px;
+      margin-bottom: 2px;
+    }
+    .pc-btn {
+      aspect-ratio: 1;
+      border-radius: 6px;
+      border: 1.5px solid #22c55e;
+      background: rgba(34,197,94,0.08);
+      color: var(--text);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.12s;
+      padding: 0;
+    }
+    .pc-btn:hover:not(.pc-taken) { background: rgba(139,92,246,0.2); border-color: var(--purple); transform: scale(1.08); }
+    .pc-btn.pc-selected { background: var(--purple); border-color: var(--purple); color: #fff; }
+    .pc-btn.pc-taken { border-color: #ef4444; background: rgba(239,68,68,0.08); color: #ef4444; cursor: not-allowed; opacity: 0.65; }
+    .pc-stats {
+      display: flex;
+      gap: 0;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--card-border);
+    }
+    .pc-stat { text-align: center; flex: 1; }
+    .pc-stat-val { font-size: 22px; font-weight: 800; }
+    .pc-stat-val.green  { color: #22c55e; }
+    .pc-stat-val.red    { color: #ef4444; }
+    .pc-stat-val.purple { color: #a78bfa; }
+    .pc-stat-label { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+    .resv-submit-btn {
+      width: 100%;
+      margin-top: 16px;
+      padding: 11px;
+      background: linear-gradient(135deg, var(--navy-dark), var(--purple));
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .resv-submit-btn:hover { opacity: 0.88; }
+    .resv-submit-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .resv-err { font-size: 12px; color: #f87171; margin-top: 8px; display: none; }
+    .resv-right { display: flex; flex-direction: column; gap: 20px; }
+    .resv-side-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .resv-rules-body {
+      padding: 14px 16px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .resv-rules-body p { margin: 0 0 6px; font-weight: 700; color: var(--text); font-size: 13px; }
+    .resv-filter-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--card-border);
+      flex-wrap: wrap;
+    }
+    .resv-ftab {
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .resv-ftab.active, .resv-ftab:hover { background: var(--purple); border-color: var(--purple); color: #fff; }
+    .resv-list-body { padding: 6px 14px; max-height: 360px; overflow-y: auto; }
+    .resv-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .resv-item:last-child { border-bottom: none; }
+    .resv-item-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .badge-pending   { background: rgba(251,191,36,0.15);  color: #fbbf24; }
+    .badge-approved  { background: rgba(34,197,94,0.15);   color: #4ade80; }
+    .badge-rejected  { background: rgba(239,68,68,0.15);   color: #f87171; }
+    .badge-cancelled { background: rgba(148,163,184,0.15); color: #94a3b8; }
+    .resv-item-info { flex: 1; min-width: 0; }
+    .resv-item-purpose { font-size: 13px; font-weight: 700; color: var(--text); }
+    .resv-item-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .resv-cancel-btn {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      border: 1px solid #ef4444;
+      background: transparent;
+      color: #f87171;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .resv-cancel-btn:hover { background: rgba(239,68,68,0.1); }
+    .resv-empty { text-align: center; color: var(--muted); font-size: 12px; padding: 24px 0; }
+    #toast {
+      position: fixed;
+      bottom: 28px; right: 28px;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 9999;
+    }
+    #toast.success { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+    #toast.error   { background: rgba(239,68,68,0.15);  color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    @media (max-width: 860px) {
+      .resv-page { grid-template-columns: 1fr; }
+      .pc-grid { grid-template-columns: repeat(6, 1fr); }
+    }
+  </style>
 </head>
 <body>
 
@@ -15,7 +276,7 @@
     <div class="nav-brand">
       <img src="/images/uclogo.png" alt="UC Logo" class="nav-logo"/>
       <img src="/images/ccsmainlogo.png" alt="CCS Logo" class="nav-logo"/>
-      <span class="nav-title">College of Computer Studies Sit-in Monitoring System</span>
+      <span class="nav-title">CCS · Sit-in Monitoring System</span>
     </div>
     <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
     <ul class="nav-links" id="nav-links">
@@ -27,10 +288,10 @@
           <li><a href="/page/resources.html">Resources</a></li>
           <li><a href="/page/forums.html">Forums</a></li>
         </ul>
-        <li><a href="/page/history.html" class="nav-link">History</a></li>
-        <li><a href="/page/reservation.html" class="nav-link">Reservation</a></li>
-        
       </li>
+      <li><a href="/page/history.html" class="nav-link">History</a></li>
+      <li><a href="/page/reservation.html" class="nav-link active">Reservation</a></li>
+      <li><a href="/page/testimonials.html" class="nav-link">Testimonials</a></li>
       <li class="dropdown" id="user-dropdown-li">
         <a href="#" class="nav-link dropdown-toggle" id="userDropdownToggle" style="display:flex;align-items:center;gap:8px;">
           <div class="nav-user-avatar" id="nav-avatar">?</div>
@@ -44,53 +305,31 @@
     </ul>
   </nav>
 
-  <div class="dashboard-main">
+  <div class="resv-page">
 
-    <!-- HEADER -->
-    <div class="res-page-header">
-      <div>
-        <h1 class="res-page-title">📅 My Reservations</h1>
-        <p class="res-page-sub">Reserve a sit-in session in advance. Your request will be reviewed by the admin.</p>
-      </div>
-      <button class="res-new-btn" onclick="openModal()">+ New Reservation</button>
-    </div>
+    <div class="resv-form-panel">
+      <div class="resv-panel-header">📅 Reserve a PC</div>
+      <div class="resv-form-body">
 
-    <!-- STATUS TABS -->
-    <div class="res-tabs">
-      <button class="res-tab active" data-filter="all">All</button>
-      <button class="res-tab" data-filter="Pending">Pending</button>
-      <button class="res-tab" data-filter="Approved">Approved</button>
-      <button class="res-tab" data-filter="Rejected">Rejected</button>
-      <button class="res-tab" data-filter="Cancelled">Cancelled</button>
-    </div>
+        <div class="resv-field-row">
+          <div class="resv-field">
+            <label>Date</label>
+            <input type="date" id="res-date" onchange="loadPCs()"/>
+          </div>
+          <div class="resv-field">
+            <label>Time Start</label>
+            <input type="time" id="res-timeslot-start" onchange="applyTimeSlot()"/>
+          </div>
+        </div>
+        <div class="resv-field-row full">
+          <div class="resv-field">
+            <label>Time End</label>
+            <input type="time" id="res-timeslot-end" onchange="applyTimeSlot()"/>
+          </div>
+        </div>
 
-    <!-- RESERVATIONS LIST -->
-    <div id="res-list">
-      <div class="res-loading">Loading your reservations...</div>
-    </div>
-
-  </div>
-
-  <footer class="footer">
-    <div class="footer-logos">
-      <img src="/images/uclogo.png" alt="UC" class="footer-logo"/>
-      <img src="/images/ccsmainlogo.png" alt="CCS" class="footer-logo"/>
-    </div>
-    <p>&copy; 2026 University of Cebu &mdash; College of Computer Studies. All rights reserved.</p>
-  </footer>
-
-  <!-- NEW RESERVATION MODAL -->
-  <div class="res-modal-overlay hidden" id="resModal">
-    <div class="res-modal">
-      <div class="res-modal-header">
-        <h3>📅 New Sit-in Reservation</h3>
-        <button class="res-modal-close" onclick="closeModal()">✕</button>
-      </div>
-      <div class="res-modal-body">
-        <div id="modal-err" class="res-modal-err hidden"></div>
-
-        <div class="res-form-row">
-          <div class="res-form-field">
+        <div class="resv-field-row full">
+          <div class="resv-field">
             <label>Purpose</label>
             <select id="res-purpose">
               <option value="">— Select Purpose —</option>
@@ -104,155 +343,256 @@
               <option value="Other">Other</option>
             </select>
           </div>
-          <div class="res-form-field">
-            <label>Laboratory</label>
-            <select id="res-lab" onchange="loadPCs()">
-              <option value="">— Select Lab —</option>
-              <option value="Lab 528">Lab 528</option>
-              <option value="Lab 530">Lab 530</option>
-              <option value="Lab 540">Lab 540</option>
-              <option value="Lab 524">Lab 524</option>
-              <option value="Lab 526">Lab 526</option>
-            </select>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <div class="lab-row-label">Select a Lab Room</div>
+          <div class="lab-tabs">
+            <button class="lab-tab" onclick="selectLab('Lab 524', this)">Lab 524</button>
+            <button class="lab-tab" onclick="selectLab('Lab 526', this)">Lab 526</button>
+            <button class="lab-tab" onclick="selectLab('Lab 528', this)">Lab 528</button>
+            <button class="lab-tab" onclick="selectLab('Lab 530', this)">Lab 530</button>
+            <button class="lab-tab" onclick="selectLab('Lab 540', this)">Lab 540</button>
+          </div>
+          <input type="hidden" id="res-lab"/>
+          <input type="hidden" id="res-time-start"/>
+          <input type="hidden" id="res-time-end"/>
+          <input type="hidden" id="res-pc-no"/>
+        </div>
+
+        <div id="pc-section" style="display:none;">
+          <div class="pc-section-title">
+            Select a PC — Click to Choose Your Seat
+            <div class="pc-legend">
+              <div class="pc-legend-item"><div class="pc-dot pc-dot-avail"></div> Available</div>
+              <div class="pc-legend-item"><div class="pc-dot pc-dot-taken"></div> Taken</div>
+              <div class="pc-legend-item"><div class="pc-dot pc-dot-selected"></div> Selected</div>
+            </div>
+          </div>
+          <div class="pc-instructor">— Instructor / Teacher Desk —</div>
+          <div id="pc-rows-wrap"></div>
+          <div class="pc-stats">
+            <div class="pc-stat">
+              <div class="pc-stat-val green" id="stat-avail">—</div>
+              <div class="pc-stat-label">Available</div>
+            </div>
+            <div class="pc-stat">
+              <div class="pc-stat-val red" id="stat-taken">—</div>
+              <div class="pc-stat-label">Taken</div>
+            </div>
+            <div class="pc-stat">
+              <div class="pc-stat-val purple" id="stat-selected">None</div>
+              <div class="pc-stat-label">Selected</div>
+            </div>
           </div>
         </div>
 
-        <div class="res-form-row">
-          <div class="res-form-field">
-            <label>Date</label>
-            <input type="date" id="res-date"/>
-          </div>
-        </div>
+        <div class="resv-err" id="resv-err"></div>
+        <button class="resv-submit-btn" id="res-submit-btn" onclick="submitReservation()">Submit Reservation</button>
 
-        <div class="res-form-row">
-          <div class="res-form-field">
-            <label>Time Start</label>
-            <input type="time" id="res-time-start" onchange="loadPCs()"/>
-          </div>
-          <div class="res-form-field">
-            <label>Time End</label>
-            <input type="time" id="res-time-end" onchange="loadPCs()"/>
-          </div>
-        </div>
+      </div>
+    </div>
 
-        <div class="res-form-row" id="pc-row" style="display:none;">
-          <div class="res-form-field" style="width:100%;">
-            <label>Select PC <span id="pc-avail-count" style="font-size:11px;color:var(--muted);"></span></label>
-            <div id="pc-grid" class="pc-grid"></div>
-            <input type="hidden" id="res-pc-no"/>
-          </div>
+    <div class="resv-right">
+
+      <div class="resv-side-panel">
+        <div class="resv-panel-header">📋 Rules and Regulations</div>
+        <div class="resv-rules-body">
+          <p>University of Cebu — CCS Laboratory</p>
+          <ol style="padding-left:16px;margin:0;font-size:12px;">
+            <li>Maintain silence and proper decorum inside the laboratory.</li>
+            <li>Games are not allowed inside the lab.</li>
+            <li>Internet use is allowed only with instructor permission.</li>
+            <li>Downloading and installing software is strictly prohibited.</li>
+            <li>Do not access websites unrelated to the course.</li>
+            <li>Deleting files or changing computer settings is prohibited.</li>
+          </ol>
         </div>
       </div>
-      <div class="res-modal-footer">
-        <button class="res-submit-btn" id="res-submit-btn" onclick="submitReservation()">Submit Reservation</button>
-        <button class="res-cancel-btn" onclick="closeModal()">Cancel</button>
+
+      <div class="resv-side-panel">
+        <div class="resv-panel-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>📅 My Reservations</span>
+          <span id="resv-count" style="font-size:12px;opacity:0.8;"></span>
+        </div>
+        <div class="resv-filter-tabs">
+          <button class="resv-ftab active" data-filter="all">All</button>
+          <button class="resv-ftab" data-filter="Pending">Pending</button>
+          <button class="resv-ftab" data-filter="Approved">Approved</button>
+          <button class="resv-ftab" data-filter="Rejected">Rejected</button>
+          <button class="resv-ftab" data-filter="Cancelled">Cancelled</button>
+        </div>
+        <div class="resv-list-body" id="res-list">
+          <div class="resv-empty">Loading...</div>
+        </div>
       </div>
+
     </div>
   </div>
 
-  <div id="toast" class="res-toast hidden"></div>
+  <div id="toast"></div>
 
   <script src="/js/landing.js"></script>
+  <script src="/js/darkmode.js"></script>
   <script>
     const API = 'http://127.0.0.1:5000/api';
     let user = null;
     let allReservations = [];
     let currentFilter = 'all';
+    let selectedLab = '';
+    let selectedPC = null;
 
-    // ── AUTH CHECK ─────────────────────────────────────
     const stored = localStorage.getItem('ccs_user');
     if (!stored) {
       window.location.href = '/login-register/index.html';
     } else {
       user = JSON.parse(stored);
-      document.getElementById('nav-username').textContent = user.firstname || user.fullname.split(' ')[0];
-      document.getElementById('nav-avatar').textContent   = (user.lastname || user.fullname).charAt(0).toUpperCase();
+      document.getElementById('nav-username').textContent = user.firstname || user.fullname.split(',')[0];
+      document.getElementById('nav-avatar').textContent = (user.lastname || user.fullname).charAt(0).toUpperCase();
     }
 
-    // ── LOGOUT ─────────────────────────────────────────
     document.getElementById('logout-btn').addEventListener('click', async () => {
       try { await fetch(API + '/logout', { method: 'POST', credentials: 'include' }); } catch {}
       localStorage.removeItem('ccs_user');
       window.location.href = '/login-register/index.html';
     });
 
-    // ── LOAD RESERVATIONS ──────────────────────────────
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('res-date').min   = today;
+    document.getElementById('res-date').value = today;
+
+    function applyTimeSlot() {
+      const start = document.getElementById('res-timeslot-start').value;
+      const end   = document.getElementById('res-timeslot-end').value;
+      document.getElementById('res-time-start').value = start;
+      document.getElementById('res-time-end').value   = end;
+      loadPCs();
+    }
+
+    function selectLab(lab, el) {
+      selectedLab = lab;
+      selectedPC  = null;
+      document.getElementById('res-lab').value = lab;
+      document.getElementById('res-pc-no').value = '';
+      document.getElementById('stat-selected').textContent = 'None';
+      document.querySelectorAll('.lab-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      loadPCs();
+    }
+
+    async function loadPCs() {
+      if (!selectedLab) return;
+      const date      = document.getElementById('res-date').value;
+      const timeStart = document.getElementById('res-time-start').value;
+      const timeEnd   = document.getElementById('res-time-end').value;
+
+      document.getElementById('pc-section').style.display = 'block';
+      document.getElementById('pc-rows-wrap').innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px 0;">Loading PCs...</div>';
+      selectedPC = null;
+      document.getElementById('res-pc-no').value = '';
+      document.getElementById('stat-selected').textContent = 'None';
+
+      const params = new URLSearchParams({ lab: selectedLab });
+      if (date)      params.set('date', date);
+      if (timeStart) params.set('time_start', timeStart);
+      if (timeEnd)   params.set('time_end', timeEnd);
+
+      try {
+        const res  = await fetch(API + '/lab/pcs?' + params);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        renderPCGrid(data.pcs || []);
+      } catch (err) {
+        document.getElementById('pc-rows-wrap').innerHTML =
+          '<div style="font-size:12px;color:#f87171;">Could not load PCs: ' + err.message + '</div>';
+        console.error('PC load error:', err);
+      }
+    }
+
+    function renderPCGrid(pcs) {
+      const wrap    = document.getElementById('pc-rows-wrap');
+      const rowSize = 10;
+      let html = '';
+      for (let i = 0; i < pcs.length; i += rowSize) {
+        const row    = pcs.slice(i, i + rowSize);
+        const startN = i + 1;
+        const endN   = i + row.length;
+        html += '<div class="pc-row-label">Row ' + String.fromCharCode(65 + i / rowSize) + ' — PCs ' + startN + '–' + endN + '</div>';
+        html += '<div class="pc-grid">';
+        row.forEach(pc => {
+          const taken = pc.status === 'Taken';
+          html += '<button type="button" class="pc-btn' + (taken ? ' pc-taken' : '') + '" '
+            + 'id="pcb-' + pc.pc_no + '" '
+            + (taken ? '' : 'onclick="selectPC(' + pc.pc_no + ')" ')
+            + 'title="' + (taken ? 'Taken' : 'PC ' + pc.pc_no) + '">'
+            + pc.pc_no + '</button>';
+        });
+        html += '</div>';
+      }
+      wrap.innerHTML = html;
+      const avail = pcs.filter(p => p.status === 'Available').length;
+      document.getElementById('stat-avail').textContent = avail;
+      document.getElementById('stat-taken').textContent = pcs.length - avail;
+    }
+
+    function selectPC(pcNo) {
+      document.querySelectorAll('.pc-btn').forEach(b => b.classList.remove('pc-selected'));
+      const btn = document.getElementById('pcb-' + pcNo);
+      if (btn) btn.classList.add('pc-selected');
+      selectedPC = pcNo;
+      document.getElementById('res-pc-no').value = pcNo;
+      document.getElementById('stat-selected').textContent = 'PC ' + pcNo;
+    }
+
     async function loadReservations() {
       try {
-        const res  = await fetch(`${API}/reservations/${user.id}`, { credentials: 'include' });
+        const res  = await fetch(API + '/reservations/' + user.id, { credentials: 'include' });
         const data = await res.json();
         allReservations = data.reservations || [];
         renderReservations();
       } catch {
-        document.getElementById('res-list').innerHTML =
-          '<div class="res-empty">Could not load reservations. Make sure the server is running.</div>';
+        document.getElementById('res-list').innerHTML = '<div class="resv-empty">Could not load reservations.</div>';
       }
     }
 
     function renderReservations() {
-      const list = document.getElementById('res-list');
+      const list     = document.getElementById('res-list');
       const filtered = currentFilter === 'all'
         ? allReservations
         : allReservations.filter(r => r.status === currentFilter);
 
-      if (filtered.length === 0) {
-        list.innerHTML = `<div class="res-empty">
-          <span>📅</span>
-          <p>${currentFilter === 'all' ? 'No reservations yet. Click "+ New Reservation" to get started.' : 'No ' + currentFilter.toLowerCase() + ' reservations.'}</p>
-        </div>`;
+      document.getElementById('resv-count').textContent = filtered.length + ' record(s)';
+
+      if (!filtered.length) {
+        list.innerHTML = '<div class="resv-empty">' + (currentFilter === 'all' ? 'No reservations yet.' : 'No ' + currentFilter.toLowerCase() + ' reservations.') + '</div>';
         return;
       }
 
-      list.innerHTML = filtered.map(r => `
-        <div class="res-card">
-          <div class="res-card-left">
-            <div class="res-card-status ${r.status.toLowerCase()}">${statusIcon(r.status)} ${r.status}</div>
-            <div class="res-card-date">📅 ${formatDate(r.date)}</div>
-            <div class="res-card-time">🕐 ${r.time_start} – ${r.time_end}</div>
-          </div>
-          <div class="res-card-center">
-            <div class="res-card-purpose">${r.purpose}</div>
-            <div class="res-card-lab">🏫 ${r.lab}</div>
-            <div class="res-card-submitted">Submitted: ${formatDateTime(r.created)}</div>
-          </div>
-          <div class="res-card-right">
-            ${r.status === 'Pending'
-              ? `<button class="res-cancel-action-btn" onclick="cancelReservation(${r.id})">Cancel</button>`
-              : ''}
-          </div>
-        </div>`).join('');
+      const badges = { Pending:'badge-pending', Approved:'badge-approved', Rejected:'badge-rejected', Cancelled:'badge-cancelled' };
+      const icons  = { Pending:'⏳', Approved:'✅', Rejected:'❌', Cancelled:'🚫' };
+
+      list.innerHTML = filtered.map(r =>
+        '<div class="resv-item">' +
+          '<div><div class="resv-item-badge ' + (badges[r.status] || '') + '">' + (icons[r.status] || '') + ' ' + r.status + '</div></div>' +
+          '<div class="resv-item-info">' +
+            '<div class="resv-item-purpose">' + r.purpose + '</div>' +
+            '<div class="resv-item-meta">🏫 ' + r.lab + (r.pc_no ? ' · PC ' + r.pc_no : '') + '</div>' +
+            '<div class="resv-item-meta">📅 ' + fmtDate(r.date) + ' · 🕐 ' + r.time_start + '–' + r.time_end + '</div>' +
+          '</div>' +
+          (r.status === 'Pending' ? '<button class="resv-cancel-btn" onclick="cancelReservation(' + r.id + ')">Cancel</button>' : '') +
+        '</div>'
+      ).join('');
     }
 
-    // ── FILTER TABS ────────────────────────────────────
-    document.querySelectorAll('.res-tab').forEach(tab => {
+    document.querySelectorAll('.resv-ftab').forEach(tab => {
       tab.addEventListener('click', () => {
-        document.querySelectorAll('.res-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.resv-ftab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         currentFilter = tab.dataset.filter;
         renderReservations();
       });
     });
-
-    // ── MODAL ──────────────────────────────────────────
-    function openModal() {
-      // Set min date to today
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('res-date').min = today;
-      document.getElementById('res-date').value = today;
-      document.getElementById('modal-err').classList.add('hidden');
-      document.getElementById('resModal').classList.remove('hidden');
-    }
-
-    function closeModal() {
-      document.getElementById('resModal').classList.add('hidden');
-      document.getElementById('res-purpose').value    = '';
-      document.getElementById('res-lab').value         = '';
-      document.getElementById('res-time-start').value  = '';
-      document.getElementById('res-time-end').value    = '';
-      document.getElementById('res-pc-no').value      = '';
-      document.getElementById('pc-row').style.display = 'none';
-      document.getElementById('pc-grid').innerHTML    = '';
-    }
 
     async function submitReservation() {
       const purpose    = document.getElementById('res-purpose').value;
@@ -260,191 +600,98 @@
       const date       = document.getElementById('res-date').value;
       const time_start = document.getElementById('res-time-start').value;
       const time_end   = document.getElementById('res-time-end').value;
-      const errEl      = document.getElementById('modal-err');
+      const errEl      = document.getElementById('resv-err');
+
+      errEl.style.display = 'none';
 
       if (!purpose || !lab || !date || !time_start || !time_end) {
-        errEl.textContent = 'Please fill in all fields.';
-        errEl.classList.remove('hidden');
-        return;
-      }
-      if (time_end <= time_start) {
-        errEl.textContent = 'End time must be after start time.';
-        errEl.classList.remove('hidden');
+        errEl.textContent = 'Please fill in all fields and select a time slot.';
+        errEl.style.display = 'block';
         return;
       }
 
       const btn = document.getElementById('res-submit-btn');
-      btn.disabled = true; btn.textContent = 'Submitting...';
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
 
       try {
-        const res  = await fetch(`${API}/reservations`, {
+        const res  = await fetch(API + '/reservations', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ user_id: user.id, purpose, lab, date, time_start, time_end,
-            pc_no: document.getElementById('res-pc-no').value || null })
+          body: JSON.stringify({ user_id: user.id, purpose, lab, date, time_start, time_end, pc_no: selectedPC || null })
         });
         const data = await res.json();
         if (data.success) {
-          closeModal();
           showToast(data.message, 'success');
           loadReservations();
+          document.getElementById('res-purpose').value = '';
+          document.getElementById('res-timeslot-start').value = '';
+          document.getElementById('res-timeslot-end').value = '';
+          document.getElementById('res-time-start').value = '';
+          document.getElementById('res-time-end').value = '';
+          selectedPC = null;
+          document.getElementById('res-pc-no').value = '';
+          document.getElementById('stat-selected').textContent = 'None';
+          if (selectedLab) loadPCs();
         } else {
-          errEl.textContent = data.message;
-          errEl.classList.remove('hidden');
+          errEl.textContent = data.message || 'Submission failed.';
+          errEl.style.display = 'block';
         }
       } catch {
         errEl.textContent = 'Cannot connect to server.';
-        errEl.classList.remove('hidden');
+        errEl.style.display = 'block';
       }
-      btn.disabled = false; btn.textContent = 'Submit Reservation';
+
+      btn.disabled = false;
+      btn.textContent = 'Submit Reservation';
     }
 
     async function cancelReservation(id) {
       if (!confirm('Cancel this reservation?')) return;
       try {
-        const res  = await fetch(`${API}/reservations/${id}/cancel`, { method: 'POST', credentials: 'include' });
+        const res  = await fetch(API + '/reservations/' + id + '/cancel', { method: 'POST', credentials: 'include' });
         const data = await res.json();
         showToast(data.message, data.success ? 'success' : 'error');
         loadReservations();
       } catch { showToast('Server error.', 'error'); }
     }
 
-    // ── HELPERS ────────────────────────────────────────
-    function statusIcon(s) {
-      return { Pending: '⏳', Approved: '✅', Rejected: '❌', Cancelled: '🚫' }[s] || '•';
-    }
-
-    function formatDate(d) {
+    function fmtDate(d) {
       if (!d) return '—';
-      return new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' });
+      return new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
     }
 
-    function formatDateTime(d) {
-      if (!d) return '—';
-      return new Date(d).toLocaleDateString('en-PH', { month:'short', day:'numeric', year:'numeric' });
-    }
-
-    function showToast(msg, type = 'success') {
+    function showToast(msg, type) {
       const t = document.getElementById('toast');
       t.textContent = msg;
-      t.className = `res-toast ${type}`;
-      t.classList.remove('hidden');
-      setTimeout(() => t.classList.add('hidden'), 3000);
+      t.className = type || 'success';
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => { t.className = ''; t.textContent = ''; }, 3500);
     }
 
-    loadReservations();
-
-    // Check if reservations are enabled by admin
     (async () => {
       try {
-        const res  = await fetch('http://127.0.0.1:5000/api/settings/reservation');
+        const res  = await fetch(API + '/settings/reservation');
         const data = await res.json();
         if (!data.reservation_enabled) {
           const btn = document.getElementById('res-submit-btn');
-          if (btn) {
-            btn.disabled = true;
-            btn.textContent = 'Reservations Disabled';
-            btn.title = 'Reservations are currently disabled by the administrator.';
-            btn.style.opacity  = '0.5';
-            btn.style.cursor   = 'not-allowed';
-          }
+          btn.disabled = true;
+          btn.textContent = 'Reservations Disabled by Admin';
         }
       } catch {}
     })();
 
-    // User dropdown toggle
-    const userDropdownToggle = document.getElementById('userDropdownToggle');
-    const userDropdownMenu   = document.getElementById('userDropdownMenu');
-    if (userDropdownToggle && userDropdownMenu) {
-      userDropdownToggle.addEventListener('click', (e) => {
-        e.preventDefault();
-        userDropdownMenu.classList.toggle('open');
-      });
-      document.addEventListener('click', (e) => {
-        if (!userDropdownToggle.contains(e.target) && !userDropdownMenu.contains(e.target)) {
-          userDropdownMenu.classList.remove('open');
-        }
+    const udt = document.getElementById('userDropdownToggle');
+    const udm = document.getElementById('userDropdownMenu');
+    if (udt && udm) {
+      udt.addEventListener('click', e => { e.preventDefault(); udm.classList.toggle('open'); });
+      document.addEventListener('click', e => {
+        if (!udt.contains(e.target) && !udm.contains(e.target)) udm.classList.remove('open');
       });
     }
-  </script>
-  <style>
-    .pc-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
-      gap: 7px;
-      margin-top: 6px;
-      max-height: 180px;
-      overflow-y: auto;
-      padding: 4px 2px;
-    }
-    .pc-btn {
-      padding: 7px 4px;
-      border-radius: 8px;
-      border: 1.5px solid var(--card-border, #334155);
-      background: rgba(255,255,255,0.04);
-      color: var(--text, #e2e8f0);
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.15s;
-    }
-    .pc-btn:hover:not(.pc-taken) { border-color: #8b5cf6; background: rgba(139,92,246,0.15); }
-    .pc-btn.pc-selected { border-color: #22c55e; background: rgba(34,197,94,0.18); color: #4ade80; }
-    .pc-btn.pc-taken { opacity: 0.38; cursor: not-allowed; text-decoration: line-through; }
-    .pc-loading { font-size: 12px; color: var(--muted, #94a3b8); padding: 10px 0; }
-  </style>
 
-    // ── PC Availability ──
-    async function loadPCs() {
-      const lab       = document.getElementById('res-lab').value;
-      const date      = document.getElementById('res-date').value;
-      const timeStart = document.getElementById('res-time-start').value;
-      const timeEnd   = document.getElementById('res-time-end').value;
-      const pcRow     = document.getElementById('pc-row');
-      const pcGrid    = document.getElementById('pc-grid');
-      const pcCount   = document.getElementById('pc-avail-count');
-      const pcHidden  = document.getElementById('res-pc-no');
-
-      if (!lab) { pcRow.style.display = 'none'; return; }
-
-      pcRow.style.display = 'block';
-      pcGrid.innerHTML = '<div class="pc-loading">Loading PCs...</div>';
-      pcHidden.value = '';
-
-      const params = new URLSearchParams({ lab });
-      if (date)      params.set('date', date);
-      if (timeStart) params.set('time_start', timeStart);
-      if (timeEnd)   params.set('time_end', timeEnd);
-
-      try {
-        const res  = await fetch(API + '/lab/pcs?' + params, { credentials: 'include' });
-        const data = await res.json();
-        if (!data.pcs || !data.pcs.length) {
-          pcGrid.innerHTML = '<div class="pc-loading">No PCs found for this lab.</div>';
-          return;
-        }
-        const available = data.pcs.filter(p => p.status === 'Available').length;
-        pcCount.textContent = '(' + available + ' available of ' + data.pcs.length + ')';
-        pcGrid.innerHTML = data.pcs.map(p =>
-          '<button type="button" class="pc-btn' + (p.status === 'Taken' ? ' pc-taken' : '') + '" ' +
-          'id="pc-btn-' + p.pc_no + '" ' +
-          (p.status !== 'Taken' ? 'onclick="selectPC(' + p.pc_no + ')" ' : '') +
-          'title="' + (p.status === 'Taken' ? 'Already reserved' : 'PC ' + p.pc_no) + '">' +
-          'PC ' + p.pc_no + '</button>'
-        ).join('');
-      } catch {
-        pcGrid.innerHTML = '<div class="pc-loading">Could not load PCs.</div>';
-      }
-    }
-
-    function selectPC(pcNo) {
-      document.querySelectorAll('.pc-btn').forEach(b => b.classList.remove('pc-selected'));
-      const btn = document.getElementById('pc-btn-' + pcNo);
-      if (btn) btn.classList.add('pc-selected');
-      document.getElementById('res-pc-no').value = pcNo;
-    }
+    loadReservations();
   </script>
 </body>
 </html>

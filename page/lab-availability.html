@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS | Lab Availability</title>
+  <link rel="stylesheet" href="/css/landing.css"/>
+  <link rel="stylesheet" href="/css/dashboard.css"/>
+  <link rel="stylesheet" href="/css/darkmode.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    .availability-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .availability-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .availability-header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+
+    .availability-header p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .refresh-info {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 10px;
+    }
+
+    .refresh-btn {
+      background: var(--accent-primary);
+      border: none;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .refresh-btn:hover {
+      background: var(--accent-secondary);
+    }
+
+    .refresh-btn.loading {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .labs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .lab-card {
+      background: var(--bg-secondary);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .lab-card:hover {
+      border-color: rgba(255,255,255,0.2);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    .lab-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+
+    .availability-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .availability-row:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .availability-label {
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .availability-value {
+      color: var(--text-primary);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .pc-count {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .available-count {
+      color: #10b981;
+    }
+
+    .total-count {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .occupancy-section {
+      margin-top: 16px;
+    }
+
+    .occupancy-label {
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .occupancy-bar {
+      width: 100%;
+      height: 24px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .occupancy-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #818cf8);
+      border-radius: 12px;
+      transition: width 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 8px;
+    }
+
+    .occupancy-fill.low {
+      background: linear-gradient(90deg, #10b981, #34d399);
+    }
+
+    .occupancy-fill.medium {
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    }
+
+    .occupancy-fill.high {
+      background: linear-gradient(90deg, #ef4444, #f87171);
+    }
+
+    .occupancy-text {
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 8px;
+    }
+
+    .status-badge.available {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+    }
+
+    .status-badge.moderate {
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+    }
+
+    .status-badge.busy {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+
+    .last-updated {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+    }
+
+    .error-message {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: #fca5a5;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .availability-container {
+        padding: 20px 16px;
+      }
+
+      .labs-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .lab-card {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-bar">
+    <div class="nav-logo">
+      <img src="/images/ccsmainlogo.png" alt="CCS Logo"/>
+    </div>
+    <div class="nav-menu">
+      <a href="/page/landingpage.html" class="nav-item">Home</a>
+      <a href="/page/dashboard.html" class="nav-item">Dashboard</a>
+      <a href="/page/leaderboard.html" class="nav-item">Leaderboard</a>
+      <a href="/page/lab-availability.html" class="nav-item active">Lab Availability</a>
+      <a href="/page/reservation.html" class="nav-item">Reservations</a>
+      <a href="/page/community.html" class="nav-item">Community</a>
+      <a href="/login-register/index.html?action=logout" class="nav-item logout">Logout</a>
+    </div>
+    <div class="nav-toggle" id="navToggle">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </nav>
+
+  <div class="availability-container">
+    <div class="availability-header">
+      <h1>🖥️ Lab Availability</h1>
+      <p>Check real-time availability of computers in all labs</p>
+      <div style="margin-top: 16px;">
+        <button class="refresh-btn" id="refreshBtn">↻ Refresh Now</button>
+      </div>
+      <div class="refresh-info">
+        <span>Last updated: <span id="lastUpdated">--:--</span></span>
+      </div>
+    </div>
+
+    <div id="availabilityContent" class="labs-grid">
+      <div class="loading">Loading lab availability...</div>
+    </div>
+  </div>
+
+  <script>
+    const LABS = ['Lab 524', 'Lab 526', 'Lab 528', 'Lab 530', 'Lab 540'];
+    let autoRefreshInterval;
+
+    async function loadAvailability() {
+      try {
+        const response = await fetch('/api/lab-availability');
+        if (!response.ok) throw new Error('Failed to load availability');
+        const data = await response.json();
+        
+        displayAvailability(data);
+        updateLastUpdated();
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('availabilityContent').innerHTML = 
+          `<div class="error-message">Failed to load lab availability. Please try again.</div>`;
+      }
+    }
+
+    function displayAvailability(labs) {
+      const container = document.getElementById('availabilityContent');
+      
+      if (!labs || labs.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📊</div>
+            <p>No lab data available.</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      
+      // Sort labs in order
+      const sortedLabs = labs.sort((a, b) => {
+        const orderA = LABS.indexOf(a.lab_name);
+        const orderB = LABS.indexOf(b.lab_name);
+        return orderA - orderB;
+      });
+
+      sortedLabs.forEach(lab => {
+        const occupancyRate = lab.occupancy_rate || 0;
+        let statusClass = 'available';
+        let statusText = 'Available';
+
+        if (occupancyRate > 75) {
+          statusClass = 'busy';
+          statusText = 'Busy';
+        } else if (occupancyRate > 50) {
+          statusClass = 'moderate';
+          statusText = 'Moderate';
+        }
+
+        let fillClass = 'low';
+        if (occupancyRate > 75) {
+          fillClass = 'high';
+        } else if (occupancyRate > 50) {
+          fillClass = 'medium';
+        }
+
+        const occupancyText = occupancyRate > 0 ? `${Math.round(occupancyRate)}%` : '0%';
+
+        html += `
+          <div class="lab-card">
+            <div class="lab-name">${escapeHtml(lab.lab_name)}</div>
+            
+            <div class="availability-row">
+              <span class="availability-label">Available</span>
+              <div class="pc-count">
+                <span class="available-count">${lab.available_pcs}</span>
+                <span class="total-count">of ${lab.total_pcs}</span>
+              </div>
+            </div>
+
+            <div class="availability-row">
+              <span class="availability-label">In Use</span>
+              <span class="availability-value">${lab.occupied_pcs}</span>
+            </div>
+
+            <div class="occupancy-section">
+              <label class="occupancy-label">Occupancy</label>
+              <div class="occupancy-bar">
+                <div class="occupancy-fill ${fillClass}" style="width: ${occupancyRate}%">
+                  ${occupancyRate > 10 ? `<span class="occupancy-text">${occupancyText}</span>` : ''}
+                </div>
+              </div>
+              <span class="status-badge ${statusClass}">${statusText}</span>
+            </div>
+
+            <div class="last-updated">${formatTime(lab.last_updated)}</div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function updateLastUpdated() {
+      const now = new Date();
+      document.getElementById('lastUpdated').textContent = 
+        `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    }
+
+    function formatTime(isoString) {
+      if (!isoString) return 'Just now';
+      const date = new Date(isoString);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+      
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours}h ago`;
+      
+      const diffDays = Math.floor(diffHours / 24);
+      return `${diffDays}d ago`;
+    }
+
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Refresh button handler
+    document.getElementById('refreshBtn').addEventListener('click', async function() {
+      this.classList.add('loading');
+      this.disabled = true;
+      await loadAvailability();
+      this.classList.remove('loading');
+      this.disabled = false;
+    });
+
+    // Auto-refresh every 30 seconds
+    function setupAutoRefresh() {
+      autoRefreshInterval = setInterval(loadAvailability, 30000);
+    }
+
+    // Load on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAvailability();
+      setupAutoRefresh();
+    });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+    });
+
+    // Setup mobile nav toggle
+    const navToggle = document.getElementById('navToggle');
+    const navMenu = document.querySelector('.nav-menu');
+    if (navToggle && navMenu) {
+      navToggle.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+      });
+    }
+  </script>
+</body>
+</html>
