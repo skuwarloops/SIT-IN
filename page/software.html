@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS | Laboratory Software</title>
+  <link rel="stylesheet" href="../css/landing.css"/>
+  <link rel="stylesheet" href="../css/darkmode.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Page layout ── */
+    .software-page {
+      min-height: calc(100vh - 64px);
+      padding: 48px 40px;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .page-header h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    body.light-mode .page-header h1 { color: var(--text); }
+
+    .page-header p {
+      font-size: 15px;
+      color: var(--muted);
+    }
+
+    /* ── Layout grid: sidebar + main ── */
+    .software-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      position: sticky;
+      top: 84px;
+    }
+
+    .sidebar-panel h3 {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--gold);
+      margin-bottom: 16px;
+    }
+
+    .lab-select {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a9bbf' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    body.light-mode .lab-select {
+      background-color: #fff;
+      color: var(--text);
+      border-color: var(--card-border);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    }
+
+    .lab-select:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(109,40,217,0.15);
+    }
+
+    .sidebar-note {
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* Lab quick-jump buttons */
+    .lab-tabs {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 20px;
+    }
+
+    .lab-tab-btn {
+      width: 100%;
+      padding: 9px 14px;
+      background: transparent;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+    }
+
+    .lab-tab-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold-light);
+      background: rgba(201,162,39,0.06);
+    }
+
+    .lab-tab-btn.active {
+      background: linear-gradient(135deg, var(--navy-dark), var(--purple));
+      border-color: transparent;
+      color: #fff;
+    }
+
+    /* ── Main content ── */
+
+
+    .lab-software-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 24px;
+      display: none;
+    }
+
+    .lab-software-panel.active { display: block; }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--card-border);
+      background: linear-gradient(135deg, var(--navy-dark), var(--purple));
+    }
+
+    .panel-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .status-badge {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    /* Software grid */
+    .software-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+      padding: 24px;
+    }
+
+    .software-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+      cursor: default;
+    }
+
+    body.light-mode .software-card {
+      background: #f8fafc;
+      border-color: var(--card-border);
+    }
+
+    .software-card:hover {
+      border-color: rgba(201,162,39,0.35);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    body.light-mode .software-card:hover {
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+
+    .sw-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--navy-dark), var(--purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+
+    .sw-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .sw-version {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Empty state */
+    .empty-lab {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--muted);
+    }
+
+    .empty-lab-icon {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    /* Loading */
+    .sw-loading {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .software-page { padding: 24px 16px; }
+
+      .software-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar-panel {
+        position: static;
+      }
+
+      .lab-tabs {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+
+      .lab-tab-btn {
+        width: auto;
+        flex: 1;
+        text-align: center;
+      }
+
+      .software-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── NAVBAR ─────────────────────────────────────────── -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img src="../images/uclogo.png" alt="UC Logo" class="nav-logo"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS Logo" class="nav-logo"/>
+      <span class="nav-title">CCS · Sit-in Monitoring System</span>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/page/dashboard.html" class="nav-link">Home</a></li>
+      <li class="dropdown">
+        <a href="community.html" class="nav-link dropdown-toggle" id="communityToggle">Community ▾</a>
+        <ul class="dropdown-menu" id="communityMenu">
+          <li><a href="announcements.html">Announcements</a></li>
+          <li><a href="resources.html">Resources</a></li>
+          <li><a href="forums.html">Forums</a></li>
+        </ul>
+      </li>
+      <li><a href="/page/history.html" class="nav-link">History</a></li>
+      <li><a href="software.html" class="nav-link active">Software</a></li>
+      <li><a href="/page/lab-availability.html" class="nav-link">Lab Availability</a></li>
+      <li><a href="/page/reservation.html" class="nav-link">Reservation</a></li>
+      <li><a href="/page/testimonials.html" class="nav-link">Testimonials</a></li>
+
+      <!-- Dark mode toggle -->
+      <li>
+        <button class="dark-mode-toggle" id="darkModeToggle" title="Toggle theme" aria-label="Toggle theme">🌙</button>
+      </li>
+
+      <!-- Auth: guest -->
+      <li id="nav-auth-guest">
+        <a href="/login-register/index.html" class="nav-link">Login</a>
+      </li>
+      <li id="nav-auth-guest2">
+        <a href="/login-register/index.html" class="nav-btn">Register</a>
+      </li>
+      <!-- Auth: logged-in -->
+      <li id="nav-auth-user" style="display:none;">
+        <div class="nav-user">
+          <div class="nav-user-avatar" id="nav-avatar">?</div>
+          <span id="nav-username"></span>
+        </div>
+      </li>
+      <li id="nav-auth-logout" style="display:none;">
+        <button class="logout-btn" id="logout-btn">Logout</button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- ── MAIN PAGE ──────────────────────────────────────── -->
+  <div class="software-page">
+    <div class="page-header">
+      <h1>Laboratory Software</h1>
+      <p>Select a laboratory room to view installed software applications.</p>
+    </div>
+
+    <div class="software-layout">
+
+      <!-- Sidebar -->
+      <aside class="sidebar-panel">
+        <h3>Select Laboratory</h3>
+        <select class="lab-select" id="labSelect">
+          <option value="Lab 524">Lab 524</option>
+          <option value="Lab 526">Lab 526</option>
+          <option value="Lab 528">Lab 528</option>
+          <option value="Lab 530">Lab 530</option>
+          <option value="Lab 540">Lab 540</option>
+        </select>
+        <p class="sidebar-note">Available labs are listed above. Software information is updated regularly by the administrator.</p>
+
+        <div class="lab-tabs" id="labTabs">
+          <button class="lab-tab-btn active" data-lab="Lab 524">Lab 524</button>
+          <button class="lab-tab-btn" data-lab="Lab 526">Lab 526</button>
+          <button class="lab-tab-btn" data-lab="Lab 528">Lab 528</button>
+          <button class="lab-tab-btn" data-lab="Lab 530">Lab 530</button>
+          <button class="lab-tab-btn" data-lab="Lab 540">Lab 540</button>
+        </div>
+      </aside>
+
+      <!-- Software panels -->
+      <main class="software-main" id="softwareMain">
+        <div class="sw-loading" id="swLoading">Loading software data...</div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- ── FOOTER ─────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="footer-logos">
+      <img src="../images/uclogo.png" alt="UC" class="footer-logo"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS" class="footer-logo"/>
+    </div>
+    <p>© 2026 University of Cebu — College of Computer Studies. All rights reserved.</p>
+  </footer>
+
+  <script src="/js/landing.js"></script>
+  <script>
+    // ── ICON MAP ──────────────────────────────────────────
+    const iconMap = {
+      'xampp':           '🛠️',
+      'netbeans':        '☕',
+      'eclipse':         '🌑',
+      'mysql':           '🐬',
+      'mysql workbench': '🐬',
+      'cisco':           '🌐',
+      'packet tracer':   '🌐',
+      'visual studio':   '💜',
+      'vscode':          '💻',
+      'vs code':         '💻',
+      'python':          '🐍',
+      'java':            '☕',
+      'android studio':  '🤖',
+      'unity':           '🎮',
+      'blender':         '🎨',
+      'photoshop':       '🖼️',
+      'figma':           '✏️',
+      'postman':         '📬',
+      'git':             '🌿',
+      'github':          '🐙',
+      'node':            '🟢',
+      'apache':          '🪶',
+      'linux':           '🐧',
+      'sublime':         '📝',
+      'notepad':         '📄',
+      'default':         '💾',
+    };
+
+    function getIcon(name) {
+      const lower = (name || '').toLowerCase();
+      for (const [key, icon] of Object.entries(iconMap)) {
+        if (lower.includes(key)) return icon;
+      }
+      return iconMap['default'];
+    }
+
+    // ── RENDER ────────────────────────────────────────────
+    function renderPanel(labName, softwareList) {
+      const isEmpty = !softwareList || softwareList.length === 0;
+
+      const cards = isEmpty
+        ? `<div class="empty-lab">
+             <span class="empty-lab-icon">📭</span>
+             <p>No software listed for this lab yet.</p>
+           </div>`
+        : softwareList.map(sw => `
+            <div class="software-card">
+              <div class="sw-icon">${getIcon(sw.name)}</div>
+              <div class="sw-info">
+                <div class="sw-name">${sw.name}</div>
+                ${sw.version ? `<div class="sw-version">${sw.version}</div>` : ''}
+              </div>
+            </div>
+          `).join('');
+
+      return `
+        <div class="lab-software-panel active" id="panel-${labName.replace(' ', '-')}">
+          <div class="panel-header">
+            <h2>Software in ${labName}</h2>
+            <span class="status-badge">✓ Status: Updated</span>
+          </div>
+          ${isEmpty ? cards : `<div class="software-grid">${cards}</div>`}
+        </div>
+      `;
+    }
+
+    // ── LOAD DATA ─────────────────────────────────────────
+    let allData = {};
+
+    async function loadAllSoftware() {
+      try {
+        const res = await fetch('/api/software/available');
+        if (res.ok) {
+          const data = await res.json();
+          // API returns { "Lab 524": [{name, version}], ... }
+          allData = data;
+        } else {
+          allData = {};
+        }
+      } catch {
+        allData = {};
+      }
+
+      // Pre-render all panels, show first
+      const main = document.getElementById('softwareMain');
+      main.innerHTML = '';
+
+      const labs = ['Lab 524', 'Lab 526', 'Lab 528', 'Lab 530', 'Lab 540'];
+      const generalSoftware = allData['General'] || [];
+
+      labs.forEach(lab => {
+        const div = document.createElement('div');
+        // Merge lab-specific + General (General shows in ALL labs)
+        const labSoftware = [
+          ...(allData[lab] || []),
+          ...generalSoftware
+        ];
+        div.innerHTML = renderPanel(lab, labSoftware);
+        const panel = div.firstElementChild;
+        panel.classList.remove('active');
+        panel.id = `panel-${lab.replace(' ', '-')}`;
+        main.appendChild(panel);
+      });
+
+      // Show default lab
+      showLab('Lab 524');
+    }
+
+    function showLab(labName) {
+      // Hide all panels
+      document.querySelectorAll('.lab-software-panel').forEach(p => p.classList.remove('active'));
+      // Show target
+      const target = document.getElementById(`panel-${labName.replace(' ', '-')}`);
+      if (target) target.classList.add('active');
+
+      // Update sidebar select
+      document.getElementById('labSelect').value = labName;
+
+      // Update tab buttons
+      document.querySelectorAll('.lab-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lab === labName);
+      });
+    }
+
+    // Sidebar select
+    document.getElementById('labSelect').addEventListener('change', e => {
+      showLab(e.target.value);
+    });
+
+    // Tab buttons
+    document.getElementById('labTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.lab-tab-btn');
+      if (btn) showLab(btn.dataset.lab);
+    });
+
+    // ── DARK MODE ─────────────────────────────────────────
+    const toggleBtn = document.getElementById('darkModeToggle');
+
+    function applyTheme(isLight) {
+      document.body.classList.toggle('light-mode', isLight);
+      toggleBtn.textContent = isLight ? '🌙' : '☀️';
+      toggleBtn.title = isLight ? 'Switch to dark mode' : 'Switch to light mode';
+    }
+
+    applyTheme(localStorage.getItem('ccs_theme') === 'light');
+
+    toggleBtn.addEventListener('click', () => {
+      const isNowLight = !document.body.classList.contains('light-mode');
+      localStorage.setItem('ccs_theme', isNowLight ? 'light' : 'dark');
+      applyTheme(isNowLight);
+    });
+
+    // ── AUTH NAVBAR ───────────────────────────────────────
+    const storedUser  = localStorage.getItem('ccs_user');
+    const storedAdmin = localStorage.getItem('ccs_admin');
+
+    function setupAuth(name, initial, logoutUrl, storageKey) {
+      document.getElementById('nav-auth-guest').style.display  = 'none';
+      document.getElementById('nav-auth-guest2').style.display = 'none';
+      document.getElementById('nav-auth-user').style.display   = 'list-item';
+      document.getElementById('nav-auth-logout').style.display = 'list-item';
+      document.getElementById('nav-username').textContent = name;
+      document.getElementById('nav-avatar').textContent   = initial;
+
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        try { await fetch(logoutUrl, { method: 'POST', credentials: 'include' }); } catch {}
+        localStorage.removeItem(storageKey);
+        window.location.href = '/login-register/index.html';
+      });
+    }
+
+    if (storedUser) {
+      const u = JSON.parse(storedUser);
+      setupAuth(
+        u.firstname || u.fullname.split(',')[0],
+        (u.lastname || u.fullname).charAt(0).toUpperCase(),
+        'http://127.0.0.1:5000/api/logout',
+        'ccs_user'
+      );
+    } else if (storedAdmin) {
+      const a = JSON.parse(storedAdmin);
+      setupAuth(
+        a.username,
+        a.username.charAt(0).toUpperCase(),
+        'http://127.0.0.1:5000/api/admin/logout',
+        'ccs_admin'
+      );
+    }
+
+    // ── INIT ──────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', loadAllSoftware);
+  </script>
+</body>
+</html>

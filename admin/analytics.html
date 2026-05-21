@@ -322,7 +322,11 @@
     <ul class="nav-links" id="nav-links">
       <li><a href="/admin/home.html" class="nav-link">Home</a></li>
       <li><a href="/admin/students.html" class="nav-link">Students</a></li>
-      <li><a href="/admin/sitin-records.html" class="nav-link">Records</a></li>
+      <li><a href="/admin/sitin-records.html" class="nav-link">Sit-in Records</a></li>
+      <li><a href="feedback.html">Feedback</a></li>
+      <li><a href="software.html">Software</a></li>
+      <li><a href="lab-availability.html" class="active">Lab Availability</a></li>
+      <li><a href="/admin/reservations.html">Reservations</a></li>
       <li><a href="analytics.html" class="nav-link active">Analytics</a></li>
       <li><a href="testimonials.html" class="active">Testimonials</a></li>
       <li id="nav-auth-user" style="display:none;">
@@ -570,13 +574,13 @@
             borderWidth: 1
           }]
         },
-        options: {
+              options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false }
+            legend: { display: type === 'doughnut' }
           },
-          scales: {
+          scales: type === 'doughnut' ? {} : {
             y: { beginAtZero: true, ticks: { stepSize: 1 } }
           }
         }

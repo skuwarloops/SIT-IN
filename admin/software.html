@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCS Admin | Software</title>
+  <link rel="stylesheet" href="../css/admin.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Software page extras ── */
+    .software-layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* Add software form panel */
+
+    .sw-form-panel .form-field {
+      margin-bottom: 14px;
+    }
+
+    .sw-form-panel .form-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .sw-form-panel input,
+    .sw-form-panel select {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--input-bg, #0d1e35);
+      border: 1px solid var(--input-border, #1d3a5f);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .sw-form-panel input:focus,
+    .sw-form-panel select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,162,39,0.12);
+    }
+
+    /* Lab filter tabs */
+    .lab-filter-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .lab-ftab {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border, #1a3558);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .lab-ftab:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .lab-ftab.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #07101e;
+    }
+
+    /* Software table */
+    .sw-table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--card-border, #1a3558);
+    }
+
+    .sw-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .sw-table thead {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .sw-table th {
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--card-border, #1a3558);
+      white-space: nowrap;
+    }
+
+    .sw-table tbody tr {
+      border-bottom: 1px solid var(--card-border, #1a3558);
+      transition: background 0.15s;
+    }
+
+    .sw-table tbody tr:last-child { border-bottom: none; }
+    .sw-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+    .sw-table td {
+      padding: 12px 14px;
+      color: var(--text);
+      vertical-align: middle;
+    }
+
+    /* Availability badge */
+    .avail-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .avail-badge.available {
+      background: rgba(34,197,94,0.15);
+      color: #22c55e;
+    }
+
+    .avail-badge.unavailable {
+      background: rgba(239,68,68,0.12);
+      color: #ef4444;
+    }
+
+    /* Action buttons row */
+    .sw-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 11px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn-sm:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    .btn-toggle-avail {
+      background: rgba(201,162,39,0.15);
+      color: var(--gold);
+      border: 1px solid rgba(201,162,39,0.3);
+    }
+
+    .btn-delete-sw {
+      background: rgba(239,68,68,0.12);
+      color: #ef4444;
+      border: 1px solid rgba(239,68,68,0.25);
+    }
+
+    /* Empty state */
+    .sw-empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* Summary counts */
+    .sw-summary {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .sw-count-badge {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.05);
+      color: var(--muted);
+      border: 1px solid var(--card-border, #1a3558);
+    }
+
+    .sw-count-badge span {
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    @media (max-width: 900px) {
+      .software-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── NAVBAR ──────────────────────────────────────────── -->
+  <nav class="admin-navbar">
+    <div class="admin-nav-brand">
+      <img src="../images/uclogo.png" alt="UC"/>
+      <img src="../images/ccsmainlogo.png" alt="CCS"/>
+      CCS · Admin
+    </div>
+    <ul class="admin-nav-links">
+      <li><a href="home.html">Home</a></li>
+      <li><a href="search.html">Search</a></li>
+      <li><a href="students.html">Students</a></li>
+      <li><a href="sitin.html">Sit-in</a></li>
+      <li><a href="sitin-records.html">Sit-in Records</a></li>
+      <li><a href="feedback.html">Feedback</a></li>
+      <li><a href="/admin/reservations.html">Reservations</a></li>
+      <li><a href="testimonials.html">Testimonials</a></li>
+      <li><a href="software.html" class="active">Software</a></li>
+    </ul>
+    <button class="admin-logout-btn" onclick="adminLogout()">Log out</button>
+  </nav>
+
+  <!-- ── MAIN ────────────────────────────────────────────── -->
+  <div class="admin-main">
+    <div class="admin-page-title">Laboratory Software</div>
+
+    <div class="software-layout">
+
+      <!-- ── LEFT: Add Software Form ── -->
+      <div class="admin-panel sw-form-panel">
+        <div class="admin-panel-header">
+          <h3>➕ Add Software</h3>
+        </div>
+        <div class="admin-panel-body">
+          <div class="form-field">
+            <label>Software Name *</label>
+            <input type="text" id="sw-name" placeholder="e.g. NetBeans, XAMPP"/>
+          </div>
+          <div class="form-field">
+            <label>Version</label>
+            <input type="text" id="sw-version" placeholder="e.g. v8.2.4"/>
+          </div>
+          <div class="form-field">
+            <label>Laboratory</label>
+            <select id="sw-lab">
+              <option value="">— All Labs (General) —</option>
+              <option value="Lab 524">Lab 524</option>
+              <option value="Lab 526">Lab 526</option>
+              <option value="Lab 528">Lab 528</option>
+              <option value="Lab 530">Lab 530</option>
+              <option value="Lab 540">Lab 540</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="addSoftware()" style="width:100%;margin-top:4px;">
+            Add Software
+          </button>
+        </div>
+      </div>
+
+      <!-- ── RIGHT: Software Table ── -->
+      <div class="admin-panel">
+        <div class="admin-panel-header">
+          <h3>💾 Installed Software</h3>
+        </div>
+        <div class="admin-panel-body">
+
+          <!-- Filter tabs -->
+          <div class="lab-filter-tabs" id="labFilterTabs">
+            <button class="lab-ftab active" data-lab="all">All Labs</button>
+            <button class="lab-ftab" data-lab="Lab 524">Lab 524</button>
+            <button class="lab-ftab" data-lab="Lab 526">Lab 526</button>
+            <button class="lab-ftab" data-lab="Lab 528">Lab 528</button>
+            <button class="lab-ftab" data-lab="Lab 530">Lab 530</button>
+            <button class="lab-ftab" data-lab="Lab 540">Lab 540</button>
+            <button class="lab-ftab" data-lab="General">General</button>
+          </div>
+
+          <!-- Summary counts -->
+          <div class="sw-summary" id="swSummary"></div>
+
+          <!-- Table -->
+          <div class="sw-table-wrap">
+            <table class="sw-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Version</th>
+                  <th>Lab</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="swTableBody">
+                <tr>
+                  <td colspan="6" class="sw-empty">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>
+    requireAdmin();
+    setActiveNav();
+
+    let allSoftware = [];
+    let currentFilter = 'all';
+
+    // ── LOAD ─────────────────────────────────────────────
+    async function loadSoftware() {
+  try {
+    const res = await fetch(API + '/admin/software', { credentials: 'include' });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+
+    // Handle both plain array and wrapped response
+    if (Array.isArray(data)) {
+      allSoftware = data;
+    } else if (Array.isArray(data.software)) {
+      allSoftware = data.software;
+    } else {
+      allSoftware = [];
+    }
+  } catch {
+    allSoftware = [];
+  }
+  renderTable();
+  renderSummary();
+}
+
+    // ── RENDER TABLE ─────────────────────────────────────
+    function renderTable() {
+      const tbody = document.getElementById('swTableBody');
+      let filtered = currentFilter === 'all'
+        ? allSoftware
+        : allSoftware.filter(s => (s.lab_id || 'General') === currentFilter);
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="sw-empty">No software found for this lab.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((sw, i) => `
+        <tr>
+          <td style="color:var(--muted);font-size:12px;">${i + 1}</td>
+          <td style="font-weight:600;">${escHtml(sw.name)}</td>
+          <td style="color:var(--muted);">${escHtml(sw.version || '—')}</td>
+          <td>
+            <span style="
+              padding:3px 9px;
+              border-radius:20px;
+              font-size:11px;
+              font-weight:600;
+              background:rgba(201,162,39,0.1);
+              color:var(--gold);
+              border:1px solid rgba(201,162,39,0.2);
+            ">${escHtml(sw.lab_id || 'General')}</span>
+          </td>
+          <td>
+            <span class="avail-badge ${sw.availability === 'available' ? 'available' : 'unavailable'}">
+              ${sw.availability === 'available' ? '✓ Available' : '✗ Unavailable'}
+            </span>
+          </td>
+          <td>
+            <div class="sw-actions">
+              <button class="btn-sm btn-toggle-avail"
+                onclick="toggleAvailability(${sw.id}, '${sw.availability}')">
+                ${sw.availability === 'available' ? 'Disable' : 'Enable'}
+              </button>
+              <button class="btn-sm btn-delete-sw"
+                onclick="deleteSoftware(${sw.id})">
+                Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // ── RENDER SUMMARY COUNTS ─────────────────────────────
+    function renderSummary() {
+      const labs = ['Lab 524','Lab 526','Lab 528','Lab 530','Lab 540','General'];
+      const summary = document.getElementById('swSummary');
+      const totalAvail = allSoftware.filter(s => s.availability === 'available').length;
+
+      summary.innerHTML = `
+        <div class="sw-count-badge">Total: <span>${allSoftware.length}</span></div>
+        <div class="sw-count-badge">Available: <span>${totalAvail}</span></div>
+        <div class="sw-count-badge">Unavailable: <span>${allSoftware.length - totalAvail}</span></div>
+      `;
+    }
+
+    // ── ADD SOFTWARE ─────────────────────────────────────
+    async function addSoftware() {
+      const name    = document.getElementById('sw-name').value.trim();
+      const version = document.getElementById('sw-version').value.trim();
+      const lab_id  = document.getElementById('sw-lab').value;
+
+      if (!name) { showToast('Software name is required.', 'error'); return; }
+
+      try {
+        const res = await fetch(API + '/admin/software', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, version, lab_id: lab_id || null })
+        });
+        const data = await res.json();
+        if (data.success || data.id) {
+          showToast('Software added successfully!');
+          document.getElementById('sw-name').value    = '';
+          document.getElementById('sw-version').value = '';
+          document.getElementById('sw-lab').value     = '';
+          loadSoftware();
+        } else {
+          showToast(data.error || 'Failed to add software.', 'error');
+        }
+      } catch {
+        showToast('Server error.', 'error');
+      }
+    }
+
+    // ── TOGGLE AVAILABILITY ───────────────────────────────
+    async function toggleAvailability(id, current) {
+      const newStatus = current === 'available' ? 'unavailable' : 'available';
+      try {
+        const res = await fetch(API + '/admin/software/' + id, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ availability: newStatus })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Marked as ${newStatus}.`);
+          loadSoftware();
+        } else {
+          showToast('Failed to update.', 'error');
+        }
+      } catch {
+        showToast('Server error.', 'error');
+      }
+    }
+
+    // ── DELETE SOFTWARE ───────────────────────────────────
+    async function deleteSoftware(id) {
+      if (!confirm('Delete this software entry?')) return;
+      try {
+        const res = await fetch(API + '/admin/software/' + id, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Software deleted.');
+          loadSoftware();
+        } else {
+          showToast('Failed to delete.', 'error');
+        }
+      } catch {
+        showToast('Server error.', 'error');
+      }
+    }
+
+    // ── LAB FILTER TABS ───────────────────────────────────
+    document.getElementById('labFilterTabs').addEventListener('click', e => {
+      const btn = e.target.closest('.lab-ftab');
+      if (!btn) return;
+      document.querySelectorAll('.lab-ftab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.lab;
+      renderTable();
+    });
+
+    // ── HELPERS ───────────────────────────────────────────
+    function escHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+    }
+
+    // ── INIT ──────────────────────────────────────────────
+    loadSoftware();
+  </script>
+</body>
+</html>

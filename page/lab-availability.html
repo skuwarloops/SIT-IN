@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CCS | Lab Availability</title>
   <link rel="stylesheet" href="/css/landing.css"/>
-  <link rel="stylesheet" href="/css/dashboard.css"/>
   <link rel="stylesheet" href="/css/darkmode.css"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
   <style>
@@ -21,14 +20,16 @@
     }
 
     .availability-header h1 {
+      font-family: 'Fraunces', serif;
       font-size: 32px;
-      font-weight: 700;
-      color: var(--text-primary);
+      font-weight: 800;
+      color: #fff;
       margin-bottom: 10px;
     }
+    body.light-mode .availability-header h1 { color: var(--text); }
 
     .availability-header p {
-      color: var(--text-secondary);
+      color: var(--muted);
       font-size: 14px;
       margin-bottom: 20px;
     }
@@ -39,30 +40,26 @@
       justify-content: center;
       gap: 8px;
       font-size: 12px;
-      color: var(--text-secondary);
+      color: var(--muted);
       margin-top: 10px;
     }
 
     .refresh-btn {
-      background: var(--accent-primary);
+      background: linear-gradient(135deg, var(--navy-dark), var(--purple));
       border: none;
       color: #fff;
-      padding: 8px 16px;
-      border-radius: 6px;
+      padding: 8px 20px;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
-      transition: background 0.2s;
+      font-family: 'DM Sans', sans-serif;
+      transition: opacity 0.2s, transform 0.1s;
+      box-shadow: 0 4px 14px rgba(109,40,217,0.3);
     }
 
-    .refresh-btn:hover {
-      background: var(--accent-secondary);
-    }
-
-    .refresh-btn.loading {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
+    .refresh-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .refresh-btn.loading { opacity: 0.6; cursor: not-allowed; }
 
     .labs-grid {
       display: grid;
@@ -72,24 +69,26 @@
     }
 
     .lab-card {
-      background: var(--bg-secondary);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
       padding: 24px;
       transition: all 0.3s ease;
     }
 
     .lab-card:hover {
-      border-color: rgba(255,255,255,0.2);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      border-color: rgba(201,162,39,0.3);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+      transform: translateY(-2px);
     }
 
     .lab-name {
       font-size: 18px;
       font-weight: 700;
-      color: var(--text-primary);
+      color: #fff;
       margin-bottom: 16px;
     }
+    body.light-mode .lab-name { color: var(--text); }
 
     .availability-row {
       display: flex;
@@ -97,7 +96,7 @@
       justify-content: space-between;
       margin-bottom: 16px;
       padding-bottom: 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid var(--card-border);
     }
 
     .availability-row:last-child {
@@ -107,7 +106,7 @@
     }
 
     .availability-label {
-      color: var(--text-secondary);
+      color: var(--muted);
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -115,7 +114,7 @@
     }
 
     .availability-value {
-      color: var(--text-primary);
+      color: var(--text);
       font-size: 16px;
       font-weight: 700;
     }
@@ -126,21 +125,13 @@
       gap: 8px;
     }
 
-    .available-count {
-      color: #10b981;
-    }
+    .available-count { color: #10b981; font-size: 16px; font-weight: 700; }
+    .total-count     { color: var(--muted); font-size: 14px; }
 
-    .total-count {
-      color: var(--text-secondary);
-      font-size: 14px;
-    }
-
-    .occupancy-section {
-      margin-top: 16px;
-    }
+    .occupancy-section { margin-top: 16px; }
 
     .occupancy-label {
-      color: var(--text-secondary);
+      color: var(--muted);
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -152,40 +143,28 @@
     .occupancy-bar {
       width: 100%;
       height: 24px;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.07);
       border-radius: 12px;
       overflow: hidden;
-      position: relative;
     }
+    body.light-mode .occupancy-bar { background: #e2e8f0; }
 
     .occupancy-fill {
       height: 100%;
-      background: linear-gradient(90deg, #6366f1, #818cf8);
       border-radius: 12px;
-      transition: width 0.3s ease;
+      transition: width 0.4s ease;
       display: flex;
       align-items: center;
       justify-content: flex-end;
       padding-right: 8px;
+      min-width: 2%;
     }
 
-    .occupancy-fill.low {
-      background: linear-gradient(90deg, #10b981, #34d399);
-    }
+    .occupancy-fill.low    { background: linear-gradient(90deg, #10b981, #34d399); }
+    .occupancy-fill.medium { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .occupancy-fill.high   { background: linear-gradient(90deg, #ef4444, #f87171); }
 
-    .occupancy-fill.medium {
-      background: linear-gradient(90deg, #f59e0b, #fbbf24);
-    }
-
-    .occupancy-fill.high {
-      background: linear-gradient(90deg, #ef4444, #f87171);
-    }
-
-    .occupancy-text {
-      font-size: 11px;
-      font-weight: 700;
-      color: #fff;
-    }
+    .occupancy-text { font-size: 11px; font-weight: 700; color: #fff; }
 
     .status-badge {
       display: inline-block;
@@ -198,24 +177,13 @@
       margin-top: 8px;
     }
 
-    .status-badge.available {
-      background: rgba(16, 185, 129, 0.2);
-      color: #10b981;
-    }
-
-    .status-badge.moderate {
-      background: rgba(245, 158, 11, 0.2);
-      color: #f59e0b;
-    }
-
-    .status-badge.busy {
-      background: rgba(239, 68, 68, 0.2);
-      color: #ef4444;
-    }
+    .status-badge.available { background: rgba(16,185,129,0.15); color: #10b981; }
+    .status-badge.moderate  { background: rgba(245,158,11,0.15);  color: #f59e0b; }
+    .status-badge.busy      { background: rgba(239,68,68,0.15);   color: #ef4444; }
 
     .last-updated {
       font-size: 11px;
-      color: var(--text-secondary);
+      color: var(--muted);
       margin-top: 12px;
       text-align: center;
     }
@@ -223,7 +191,8 @@
     .loading {
       text-align: center;
       padding: 40px;
-      color: var(--text-secondary);
+      color: var(--muted);
+      grid-column: 1 / -1;
     }
 
     .error-message {
@@ -232,57 +201,77 @@
       color: #fca5a5;
       padding: 16px;
       border-radius: 8px;
-      margin-bottom: 20px;
+      grid-column: 1 / -1;
     }
 
     .empty-state {
       text-align: center;
       padding: 60px 20px;
-      color: var(--text-secondary);
+      color: var(--muted);
+      grid-column: 1 / -1;
     }
 
-    .empty-state-icon {
-      font-size: 48px;
-      margin-bottom: 16px;
-    }
+    .empty-state-icon { font-size: 48px; margin-bottom: 16px; }
 
     @media (max-width: 768px) {
-      .availability-container {
-        padding: 20px 16px;
-      }
-
-      .labs-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-      }
-
-      .lab-card {
-        padding: 16px;
-      }
+      .availability-container { padding: 20px 16px; }
+      .labs-grid { grid-template-columns: 1fr; gap: 16px; }
+      .lab-card  { padding: 16px; }
     }
   </style>
 </head>
 <body>
-  <nav class="nav-bar">
-    <div class="nav-logo">
-      <img src="/images/ccsmainlogo.png" alt="CCS Logo"/>
+
+  <!-- ── NAVBAR ─────────────────────────────────────────── -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <img src="/images/uclogo.png" alt="UC Logo" class="nav-logo"/>
+      <img src="/images/ccsmainlogo.png" alt="CCS Logo" class="nav-logo"/>
+      <span class="nav-title">CCS · Sit-in Monitoring System</span>
     </div>
-    <div class="nav-menu">
-      <a href="/page/landingpage.html" class="nav-item">Home</a>
-      <a href="/page/dashboard.html" class="nav-item">Dashboard</a>
-      <a href="/page/leaderboard.html" class="nav-item">Leaderboard</a>
-      <a href="/page/lab-availability.html" class="nav-item active">Lab Availability</a>
-      <a href="/page/reservation.html" class="nav-item">Reservations</a>
-      <a href="/page/community.html" class="nav-item">Community</a>
-      <a href="/login-register/index.html?action=logout" class="nav-item logout">Logout</a>
-    </div>
-    <div class="nav-toggle" id="navToggle">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/page/dashboard.html" class="nav-link">Home</a></li>
+      <li class="dropdown">
+        <a href="/page/community.html" class="nav-link dropdown-toggle" id="communityToggle">Community ▾</a>
+        <ul class="dropdown-menu" id="communityMenu">
+          <li><a href="/page/announcements.html">Announcements</a></li>
+          <li><a href="/page/resources.html">Resources</a></li>
+          <li><a href="/page/forums.html">Forums</a></li>
+        </ul>
+      </li>
+      <li><a href="/page/history.html" class="nav-link">History</a></li>
+      <li><a href="/page/software.html" class="nav-link">Software</a></li>
+      <li><a href="/page/lab-availability.html" class="nav-link active">Lab Availability</a></li>
+      <li><a href="/page/reservation.html" class="nav-link">Reservations</a></li>
+      <li><a href="/page/testimonials.html" class="nav-link">Testimonials</a></li>
+
+      <!-- Dark mode toggle -->
+      <li>
+        <button class="dark-mode-toggle" id="darkModeToggle" title="Toggle theme" aria-label="Toggle theme">🌙</button>
+      </li>
+
+      <!-- Auth: guest -->
+      <li id="nav-auth-guest">
+        <a href="/login-register/index.html" class="nav-link">Login</a>
+      </li>
+      <li id="nav-auth-guest2">
+        <a href="/login-register/index.html" class="nav-btn">Register</a>
+      </li>
+      <!-- Auth: logged-in -->
+      <li id="nav-auth-user" style="display:none;">
+        <div class="nav-user">
+          <div class="nav-user-avatar" id="nav-avatar">?</div>
+          <span id="nav-username"></span>
+        </div>
+      </li>
+      <li id="nav-auth-logout" style="display:none;">
+        <button class="logout-btn" id="logout-btn">Logout</button>
+      </li>
+    </ul>
   </nav>
 
+  <!-- ── CONTENT ────────────────────────────────────────── -->
   <div class="availability-container">
     <div class="availability-header">
       <h1>🖥️ Lab Availability</h1>
@@ -300,73 +289,62 @@
     </div>
   </div>
 
+  <!-- ── FOOTER ─────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="footer-logos">
+      <img src="/images/uclogo.png" alt="UC" class="footer-logo"/>
+      <img src="/images/ccsmainlogo.png" alt="CCS" class="footer-logo"/>
+    </div>
+    <p>© 2026 University of Cebu — College of Computer Studies. All rights reserved.</p>
+  </footer>
+
+  <script src="/js/landing.js"></script>
   <script>
     const LABS = ['Lab 524', 'Lab 526', 'Lab 528', 'Lab 530', 'Lab 540'];
     let autoRefreshInterval;
 
+    // ── LOAD ──────────────────────────────────────────────
     async function loadAvailability() {
       try {
         const response = await fetch('/api/lab-availability');
-        if (!response.ok) throw new Error('Failed to load availability');
+        if (!response.ok) throw new Error('Failed to load');
         const data = await response.json();
-        
         displayAvailability(data);
         updateLastUpdated();
       } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('availabilityContent').innerHTML = 
+        document.getElementById('availabilityContent').innerHTML =
           `<div class="error-message">Failed to load lab availability. Please try again.</div>`;
       }
     }
 
+    // ── RENDER ────────────────────────────────────────────
     function displayAvailability(labs) {
       const container = document.getElementById('availabilityContent');
-      
+
       if (!labs || labs.length === 0) {
         container.innerHTML = `
           <div class="empty-state">
             <div class="empty-state-icon">📊</div>
             <p>No lab data available.</p>
-          </div>
-        `;
+          </div>`;
         return;
       }
 
-      let html = '';
-      
-      // Sort labs in order
       const sortedLabs = labs.sort((a, b) => {
-        const orderA = LABS.indexOf(a.lab_name);
-        const orderB = LABS.indexOf(b.lab_name);
-        return orderA - orderB;
+        return LABS.indexOf(a.lab_name) - LABS.indexOf(b.lab_name);
       });
 
-      sortedLabs.forEach(lab => {
-        const occupancyRate = lab.occupancy_rate || 0;
-        let statusClass = 'available';
-        let statusText = 'Available';
+      container.innerHTML = sortedLabs.map(lab => {
+        const rate = lab.occupancy_rate || 0;
+        const statusClass = rate > 75 ? 'busy'      : rate > 50 ? 'moderate'  : 'available';
+        const statusText  = rate > 75 ? 'Busy'      : rate > 50 ? 'Moderate'  : 'Available';
+        const fillClass   = rate > 75 ? 'high'      : rate > 50 ? 'medium'    : 'low';
+        const pct         = Math.round(rate);
 
-        if (occupancyRate > 75) {
-          statusClass = 'busy';
-          statusText = 'Busy';
-        } else if (occupancyRate > 50) {
-          statusClass = 'moderate';
-          statusText = 'Moderate';
-        }
-
-        let fillClass = 'low';
-        if (occupancyRate > 75) {
-          fillClass = 'high';
-        } else if (occupancyRate > 50) {
-          fillClass = 'medium';
-        }
-
-        const occupancyText = occupancyRate > 0 ? `${Math.round(occupancyRate)}%` : '0%';
-
-        html += `
+        return `
           <div class="lab-card">
-            <div class="lab-name">${escapeHtml(lab.lab_name)}</div>
-            
+            <div class="lab-name">${escHtml(lab.lab_name)}</div>
+
             <div class="availability-row">
               <span class="availability-label">Available</span>
               <div class="pc-count">
@@ -383,57 +361,41 @@
             <div class="occupancy-section">
               <label class="occupancy-label">Occupancy</label>
               <div class="occupancy-bar">
-                <div class="occupancy-fill ${fillClass}" style="width: ${occupancyRate}%">
-                  ${occupancyRate > 10 ? `<span class="occupancy-text">${occupancyText}</span>` : ''}
+                <div class="occupancy-fill ${fillClass}" style="width:${Math.max(rate, 2)}%">
+                  ${pct > 10 ? `<span class="occupancy-text">${pct}%</span>` : ''}
                 </div>
               </div>
               <span class="status-badge ${statusClass}">${statusText}</span>
             </div>
 
             <div class="last-updated">${formatTime(lab.last_updated)}</div>
-          </div>
-        `;
-      });
-
-      container.innerHTML = html;
+          </div>`;
+      }).join('');
     }
 
     function updateLastUpdated() {
       const now = new Date();
-      document.getElementById('lastUpdated').textContent = 
-        `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      document.getElementById('lastUpdated').textContent =
+        `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
     }
 
-    function formatTime(isoString) {
-      if (!isoString) return 'Just now';
-      const date = new Date(isoString);
-      const now = new Date();
-      const diffMs = now - date;
-      const diffMins = Math.floor(diffMs / 60000);
-
-      if (diffMins < 1) return 'Just now';
-      if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
-      
-      const diffHours = Math.floor(diffMins / 60);
-      if (diffHours < 24) return `${diffHours}h ago`;
-      
-      const diffDays = Math.floor(diffHours / 24);
-      return `${diffDays}d ago`;
+    function formatTime(iso) {
+      if (!iso) return 'Just now';
+      const diff = Math.floor((new Date() - new Date(iso)) / 60000);
+      if (diff < 1)  return 'Just now';
+      if (diff < 60) return `${diff} min${diff > 1 ? 's' : ''} ago`;
+      const h = Math.floor(diff / 60);
+      if (h < 24)    return `${h}h ago`;
+      return `${Math.floor(h / 24)}d ago`;
     }
 
-    function escapeHtml(text) {
-      const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-      };
-      return text.replace(/[&<>"']/g, m => map[m]);
+    function escHtml(t) {
+      return String(t).replace(/[&<>"']/g, m =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
     }
 
-    // Refresh button handler
-    document.getElementById('refreshBtn').addEventListener('click', async function() {
+    // ── REFRESH BUTTON ────────────────────────────────────
+    document.getElementById('refreshBtn').addEventListener('click', async function () {
       this.classList.add('loading');
       this.disabled = true;
       await loadAvailability();
@@ -441,30 +403,61 @@
       this.disabled = false;
     });
 
-    // Auto-refresh every 30 seconds
-    function setupAutoRefresh() {
-      autoRefreshInterval = setInterval(loadAvailability, 30000);
+    // ── AUTO REFRESH every 30s ────────────────────────────
+    autoRefreshInterval = setInterval(loadAvailability, 30000);
+    window.addEventListener('beforeunload', () => clearInterval(autoRefreshInterval));
+
+    // ── DARK MODE ─────────────────────────────────────────
+    const toggleBtn = document.getElementById('darkModeToggle');
+
+    function applyTheme(isLight) {
+      document.body.classList.toggle('light-mode', isLight);
+      toggleBtn.textContent = isLight ? '🌙' : '☀️';
+      toggleBtn.title = isLight ? 'Switch to dark mode' : 'Switch to light mode';
     }
 
-    // Load on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      loadAvailability();
-      setupAutoRefresh();
+    applyTheme(localStorage.getItem('ccs_theme') === 'light');
+    toggleBtn.addEventListener('click', () => {
+      const isNowLight = !document.body.classList.contains('light-mode');
+      localStorage.setItem('ccs_theme', isNowLight ? 'light' : 'dark');
+      applyTheme(isNowLight);
     });
 
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-      if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-    });
+    // ── AUTH NAVBAR ───────────────────────────────────────
+    const storedUser  = localStorage.getItem('ccs_user');
+    const storedAdmin = localStorage.getItem('ccs_admin');
 
-    // Setup mobile nav toggle
-    const navToggle = document.getElementById('navToggle');
-    const navMenu = document.querySelector('.nav-menu');
-    if (navToggle && navMenu) {
-      navToggle.addEventListener('click', () => {
-        navMenu.classList.toggle('active');
+    function setupAuth(name, initial, logoutUrl, storageKey) {
+      document.getElementById('nav-auth-guest').style.display  = 'none';
+      document.getElementById('nav-auth-guest2').style.display = 'none';
+      document.getElementById('nav-auth-user').style.display   = 'list-item';
+      document.getElementById('nav-auth-logout').style.display = 'list-item';
+      document.getElementById('nav-username').textContent = name;
+      document.getElementById('nav-avatar').textContent   = initial;
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        try { await fetch(logoutUrl, { method: 'POST', credentials: 'include' }); } catch {}
+        localStorage.removeItem(storageKey);
+        window.location.href = '/login-register/index.html';
       });
     }
+
+    if (storedUser) {
+      const u = JSON.parse(storedUser);
+      setupAuth(
+        u.firstname || u.fullname.split(',')[0],
+        (u.lastname || u.fullname).charAt(0).toUpperCase(),
+        'http://127.0.0.1:5000/api/logout', 'ccs_user'
+      );
+    } else if (storedAdmin) {
+      const a = JSON.parse(storedAdmin);
+      setupAuth(
+        a.username, a.username.charAt(0).toUpperCase(),
+        'http://127.0.0.1:5000/api/admin/logout', 'ccs_admin'
+      );
+    }
+
+    // ── INIT ──────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', loadAvailability);
   </script>
 </body>
 </html>
