@@ -6,6 +6,101 @@
   <title>CCS Admin | Home</title>
   <link rel="stylesheet" href="../css/admin.css"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Edit modal ── */
+    .edit-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .edit-modal-overlay.open {
+      display: flex;
+    }
+
+    .edit-modal {
+      background: #111827;
+      border: 1px solid #1a3558;
+      border-radius: 14px;
+      padding: 28px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    }
+
+    .edit-modal h3 {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .edit-modal textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: #091629;
+      border: 1px solid #1d3a5f;
+      border-radius: 8px;
+      color: #dce8f8;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      resize: vertical;
+      outline: none;
+      min-height: 100px;
+      margin-bottom: 16px;
+      transition: border-color 0.2s;
+    }
+
+    .edit-modal textarea:focus {
+      border-color: #c9a227;
+    }
+
+    .edit-modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-cancel {
+      flex: 1;
+      padding: 9px;
+      background: transparent;
+      border: 1px solid #1a3558;
+      border-radius: 8px;
+      color: #5a7a9a;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-cancel:hover {
+      border-color: #5a7a9a;
+      color: #dce8f8;
+    }
+
+    /* Edit button in announcement */
+    .btn-edit-ann {
+      padding: 3px 10px;
+      font-size: 11px;
+      background: rgba(201,162,39,0.15);
+      color: #c9a227;
+      border: 1px solid rgba(201,162,39,0.3);
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-edit-ann:hover {
+      background: rgba(201,162,39,0.25);
+    }
+  </style>
 </head>
 <body>
 
@@ -21,11 +116,11 @@
       <li><a href="students.html">Students</a></li>
       <li><a href="sitin.html">Sit-in</a></li>
       <li><a href="sitin-records.html">Sit-in Records</a></li>
-      <li><a href="feedback.html" class="active">Feedback</a></li>
+      <li><a href="feedback.html">Feedback</a></li>
       <li><a href="software.html">Software</a></li>
       <li><a href="lab-availability.html">Lab Availability</a></li>
-      <li><a href="/admin/reservations.html" class="active">Reservations</a></li>
-      <li><a href="analytics.html" class="nav-link active">Analytics</a></li>
+      <li><a href="reservations.html">Reservations</a></li>
+      <li><a href="analytics.html">Analytics</a></li>
       <li><a href="testimonials.html">Testimonials</a></li>
     </ul>
     <button class="admin-logout-btn" onclick="adminLogout()">Log out</button>
@@ -99,6 +194,19 @@
     </div>
   </div>
 
+  <!-- ── EDIT ANNOUNCEMENT MODAL ── -->
+  <div class="edit-modal-overlay" id="editModal">
+    <div class="edit-modal">
+      <h3>✏️ Edit Announcement</h3>
+      <textarea id="edit-ann-content" rows="4" placeholder="Edit announcement..."></textarea>
+      <input type="hidden" id="edit-ann-id"/>
+      <div class="edit-modal-actions">
+        <button class="btn-primary" style="flex:1;padding:9px;" onclick="saveEditAnn()">Save Changes</button>
+        <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script src="../js/admin.js"></script>
   <script>
     requireAdmin();
@@ -148,7 +256,10 @@
           <div class="ann-entry">
             <div class="ann-meta-row">
               <span class="ann-author">${a.author} | ${formatDate(a.created)}</span>
-              <button class="btn-danger" style="padding:3px 10px;font-size:11px;" onclick="deleteAnn(${a.id})">Delete</button>
+              <div style="display:flex;gap:6px;">
+                <button class="btn-edit-ann" onclick="openEditModal(${a.id}, ${JSON.stringify(a.content).replace(/"/g, '&quot;')})">Edit</button>
+                <button class="btn-danger" style="padding:3px 10px;font-size:11px;" onclick="deleteAnn(${a.id})">Delete</button>
+              </div>
             </div>
             <div class="ann-text">${a.content}</div>
           </div>`).join('');
@@ -182,6 +293,44 @@
       showToast('Announcement deleted.');
       loadAnnouncements();
     }
+
+    // ── EDIT ANNOUNCEMENT ─────────────────────────────────
+    function openEditModal(id, content) {
+      document.getElementById('edit-ann-id').value      = id;
+      document.getElementById('edit-ann-content').value = content;
+      document.getElementById('editModal').classList.add('open');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('open');
+    }
+
+    async function saveEditAnn() {
+      const id      = document.getElementById('edit-ann-id').value;
+      const content = document.getElementById('edit-ann-content').value.trim();
+      if (!content) { showToast('Content cannot be empty.', 'error'); return; }
+      try {
+        const res  = await fetch(API + '/admin/announcements/' + id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ content })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Announcement updated!');
+          closeEditModal();
+          loadAnnouncements();
+        } else {
+          showToast(data.message || 'Failed to update.', 'error');
+        }
+      } catch { showToast('Server error.', 'error'); }
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('editModal').addEventListener('click', function(e) {
+      if (e.target === this) closeEditModal();
+    });
 
     loadStats();
     loadAnnouncements();
