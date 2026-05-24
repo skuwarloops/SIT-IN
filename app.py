@@ -1568,9 +1568,16 @@ def get_lab_pcs():
 
         result = []
         for pc in pcs:
+            if pc['status'] in ('Maintenance', 'Unavailable'):
+                # PC is marked by admin as maintenance or unavailable
+                status = pc['status']
+            elif pc['pc_no'] in taken_pcs:
+                status = 'Taken'
+            else:
+                status = 'Available'
             result.append({
-                'pc_no':  pc['pc_no'],
-                'status': 'Taken' if pc['pc_no'] in taken_pcs else 'Available'
+                'pc_no':   pc['pc_no'],
+                'status':  status
             })
 
         return jsonify({'lab': lab, 'pcs': result})
@@ -1790,32 +1797,82 @@ def get_student_points():
     })
 
 # ══════════════════════════════════════════════════════════
+#  PC MANAGEMENT
+# ══════════════════════════════════════════════════════════
+
+@app.route('/api/admin/computers/<lab_name>', methods=['GET'])
+def get_lab_computers(lab_name):
+    """Get all PCs in a lab with their status"""
+    with get_db() as conn:
+        pcs = conn.execute(
+            'SELECT id, pc_no, status FROM computers WHERE lab=? ORDER BY pc_no',
+            (lab_name,)
+        ).fetchall()
+    return jsonify([dict(p) for p in pcs])
+
+@app.route('/api/admin/computers/<int:pc_id>/status', methods=['PUT'])
+def update_pc_status(pc_id):
+    """Update a PC status: Available, Maintenance, Unavailable"""
+    data   = request.get_json() or {}
+    status = data.get('status', '').strip()
+    if status not in ('Available', 'Maintenance', 'Unavailable'):
+        return jsonify({'error': 'Invalid status'}), 400
+    with get_db() as conn:
+        conn.execute('UPDATE computers SET status=? WHERE id=?', (status, pc_id))
+        conn.commit()
+    return jsonify({'success': True})
+
+@app.route('/api/admin/computers/<lab_name>/bulk', methods=['PUT'])
+def bulk_update_pc_status(lab_name):
+    """Bulk update all PCs in a lab"""
+    data   = request.get_json() or {}
+    status = data.get('status', '').strip()
+    if status not in ('Available', 'Maintenance', 'Unavailable'):
+        return jsonify({'error': 'Invalid status'}), 400
+    with get_db() as conn:
+        conn.execute('UPDATE computers SET status=? WHERE lab=?', (status, lab_name))
+        conn.commit()
+    return jsonify({'success': True})
+
+# ══════════════════════════════════════════════════════════
 #  LAB AVAILABILITY
 # ══════════════════════════════════════════════════════════
 
 def update_lab_availability():
-    """Update lab availability based on active sit-in sessions"""
+    """Update lab availability based on active sit-ins AND pc status"""
     with get_db() as conn:
         labs = ['Lab 524', 'Lab 526', 'Lab 528', 'Lab 530', 'Lab 540']
         for lab in labs:
-            # Count active sessions in this lab
+            # Total PCs in lab
+            total_pcs = conn.execute(
+                'SELECT COUNT(*) as count FROM computers WHERE lab=?', (lab,)
+            ).fetchone()['count'] or 40
+
+            # PCs that are under Maintenance or Unavailable
+            unavail_count = conn.execute(
+                'SELECT COUNT(*) as count FROM computers WHERE lab=? AND status IN ("Maintenance","Unavailable")',
+                (lab,)
+            ).fetchone()['count'] or 0
+
+            # Active sit-ins in this lab
             active_count = conn.execute(
                 'SELECT COUNT(*) as count FROM sitin WHERE lab=? AND status="Active"',
                 (lab,)
             ).fetchone()['count'] or 0
-            
-            available = max(0, 40 - active_count)
-            
+
+            # Available = total - unavailable PCs - active sit-ins
+            available = max(0, total_pcs - unavail_count - active_count)
+
             existing = conn.execute('SELECT id FROM lab_availability WHERE lab_name=?', (lab,)).fetchone()
             if existing:
                 conn.execute(
-                    'UPDATE lab_availability SET available_pcs=?, last_updated=CURRENT_TIMESTAMP WHERE lab_name=?',
-                    (available, lab)
+                    'UPDATE lab_availability SET total_pcs=?, available_pcs=?, last_updated=CURRENT_TIMESTAMP WHERE lab_name=?',
+                    (total_pcs, available, lab)
                 )
             else:
                 conn.execute(
                     'INSERT INTO lab_availability (lab_name, total_pcs, available_pcs) VALUES (?,?,?)',
-                    (lab, 40, available)
+                    (total_pcs, available, lab)
                 )
         conn.commit()
 
