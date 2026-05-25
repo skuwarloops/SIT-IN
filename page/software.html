@@ -139,7 +139,6 @@
 
     /* ── Main content ── */
 
-
     .lab-software-panel {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -299,18 +298,18 @@
     </div>
     <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
     <ul class="nav-links" id="nav-links">
-      <li><a href="/page/dashboard.html" class="nav-link">Home</a></li>
+      <li><a href="/page/dashboard.html" class="nav-link active">Home</a></li>
       <li class="dropdown">
-        <a href="community.html" class="nav-link dropdown-toggle" id="communityToggle">Community ▾</a>
+        <a href="/page/community.html" class="nav-link dropdown-toggle" id="communityToggle">Community &#9660;</a>
         <ul class="dropdown-menu" id="communityMenu">
-          <li><a href="announcements.html">Announcements</a></li>
-          <li><a href="resources.html">Resources</a></li>
-          <li><a href="forums.html">Forums</a></li>
+          <li><a href="/page/announcements.html">Announcements</a></li>
+          <li><a href="/page/resources.html">Resources</a></li>
+          <li><a href="/page/forums.html">Forums</a></li>
         </ul>
       </li>
       <li><a href="/page/history.html" class="nav-link">History</a></li>
-      <li><a href="software.html" class="nav-link active">Software</a></li>
-      <li><a href="/page/lab-availability.html" class="nav-link">Lab Availability</a></li>
+      <li><a href="software.html" class="nav-link">Software</a></li>
+      <li><a href="/page/lab-availability.html" class="nav-link active">Lab Availability</a></xli>
       <li><a href="/page/reservation.html" class="nav-link">Reservation</a></li>
       <li><a href="/page/testimonials.html" class="nav-link">Testimonials</a></li>
 
@@ -566,7 +565,7 @@
       setupAuth(
         u.firstname || u.fullname.split(',')[0],
         (u.lastname || u.fullname).charAt(0).toUpperCase(),
-        'http://127.0.0.1:5000/api/logout',
+        '/api/logout',
         'ccs_user'
       );
     } else if (storedAdmin) {
@@ -574,7 +573,7 @@
       setupAuth(
         a.username,
         a.username.charAt(0).toUpperCase(),
-        'http://127.0.0.1:5000/api/admin/logout',
+        '/api/admin/logout',
         'ccs_admin'
       );
     }

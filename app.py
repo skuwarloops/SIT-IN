@@ -1164,10 +1164,7 @@ def get_available_software():
 
 @app.route('/api/admin/software', methods=['GET'])
 def get_all_software():
-    """Get all software (admin)"""
-    admin = session.get('admin')
-    if not admin:
-        return jsonify({'error': 'Not admin'}), 401
+    """Get all software (admin)""" 
     
     conn = get_db()
     software = conn.execute('SELECT * FROM software_apps ORDER BY lab_id, name').fetchall()
@@ -1189,33 +1186,31 @@ def get_all_software():
 @app.route('/api/admin/software', methods=['POST'])
 def add_software():
     """Add new software (admin)"""
-    admin = session.get('admin')
-    if not admin:
+    if not session.get('admin_id'):
         return jsonify({'error': 'Not admin'}), 401
-    
+
     data = request.get_json() or {}
     name = data.get('name')
     lab_id = data.get('lab_id')
     version = data.get('version', '')
-    
+
     if not name:
         return jsonify({'error': 'Name required'}), 400
-    
+
     conn = get_db()
     conn.execute(
         'INSERT INTO software_apps (name, lab_id, version, uploaded_by) VALUES (?, ?, ?, ?)',
-        (name, lab_id, version, admin['id'])
+        (name, lab_id, version, session.get('admin_id'))
     )
     conn.commit()
     conn.close()
-    
+
     return jsonify({'success': True})
 
 @app.route('/api/admin/software/<int:sid>', methods=['PUT'])
 def update_software(sid):
     """Update software (admin)"""
-    admin = session.get('admin')
-    if not admin:
+    if not session.get('admin_id'):
         return jsonify({'error': 'Not admin'}), 401
     
     data = request.get_json() or {}
@@ -1237,8 +1232,7 @@ def update_software(sid):
 @app.route('/api/admin/software/<int:sid>', methods=['DELETE'])
 def delete_software(sid):
     """Delete software (admin)"""
-    admin = session.get('admin')
-    if not admin:
+    if not session.get('admin_id'):
         return jsonify({'error': 'Not admin'}), 401
     
     conn = get_db()

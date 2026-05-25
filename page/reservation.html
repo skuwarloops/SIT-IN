@@ -100,7 +100,7 @@
       border-bottom: 1px dashed var(--card-border);
       margin-bottom: 10px;
     }
-    .pc-legend { display: flex; gap: 14px; margin-left: auto; }
+    .pc-legend { display: flex; gap: 14px; margin-left: auto; flex-wrap: wrap; }
     .pc-legend-item {
       display: flex;
       align-items: center;
@@ -115,6 +115,8 @@
     .pc-dot-avail    { background: #22c55e; }
     .pc-dot-taken    { background: #ef4444; }
     .pc-dot-selected { background: #8b5cf6; }
+    .pc-dot-maint    { background: #f59e0b; }
+    .pc-dot-unavail  { background: #64748b; }
     .pc-instructor {
       text-align: center;
       font-size: 11px;
@@ -141,14 +143,56 @@
       font-weight: 700;
       cursor: pointer;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       transition: all 0.12s;
-      padding: 0;
+      padding: 2px 0;
+      gap: 1px;
+      line-height: 1.2;
     }
-    .pc-btn:hover:not(.pc-taken) { background: rgba(139,92,246,0.2); border-color: var(--purple); transform: scale(1.08); }
+    .pc-btn:hover:not(.pc-taken):not(.pc-maintenance):not(.pc-unavailable) {
+      background: rgba(139,92,246,0.2);
+      border-color: var(--purple);
+      transform: scale(1.08);
+    }
     .pc-btn.pc-selected { background: var(--purple); border-color: var(--purple); color: #fff; }
-    .pc-btn.pc-taken { border-color: #ef4444; background: rgba(239,68,68,0.08); color: #ef4444; cursor: not-allowed; opacity: 0.65; }
+
+    /* Taken — red */
+    .pc-btn.pc-taken {
+      border-color: #ef4444;
+      background: rgba(239,68,68,0.08);
+      color: #ef4444;
+      cursor: not-allowed;
+      opacity: 0.65;
+    }
+
+    /* Maintenance — amber */
+    .pc-btn.pc-maintenance {
+      border-color: #f59e0b;
+      background: rgba(245,158,11,0.1);
+      color: #f59e0b;
+      cursor: not-allowed;
+      opacity: 0.8;
+    }
+
+    /* Unavailable — gray */
+    .pc-btn.pc-unavailable {
+      border-color: #475569;
+      background: rgba(71,85,105,0.15);
+      color: #64748b;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .pc-status-label {
+      font-size: 7px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      line-height: 1;
+    }
+
     .pc-stats {
       display: flex;
       gap: 0;
@@ -161,6 +205,7 @@
     .pc-stat-val.green  { color: #22c55e; }
     .pc-stat-val.red    { color: #ef4444; }
     .pc-stat-val.purple { color: #a78bfa; }
+    .pc-stat-val.amber  { color: #f59e0b; }
     .pc-stat-label { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
     .resv-submit-btn {
       width: 100%;
@@ -368,6 +413,8 @@
             <div class="pc-legend">
               <div class="pc-legend-item"><div class="pc-dot pc-dot-avail"></div> Available</div>
               <div class="pc-legend-item"><div class="pc-dot pc-dot-taken"></div> Taken</div>
+              <div class="pc-legend-item"><div class="pc-dot pc-dot-maint"></div> Maintenance</div>
+              <div class="pc-legend-item"><div class="pc-dot pc-dot-unavail"></div> Unavailable</div>
               <div class="pc-legend-item"><div class="pc-dot pc-dot-selected"></div> Selected</div>
             </div>
           </div>
@@ -381,6 +428,10 @@
             <div class="pc-stat">
               <div class="pc-stat-val red" id="stat-taken">—</div>
               <div class="pc-stat-label">Taken</div>
+            </div>
+            <div class="pc-stat">
+              <div class="pc-stat-val amber" id="stat-maint">—</div>
+              <div class="pc-stat-label">Maint.</div>
             </div>
             <div class="pc-stat">
               <div class="pc-stat-val purple" id="stat-selected">None</div>
@@ -508,7 +559,6 @@
       } catch (err) {
         document.getElementById('pc-rows-wrap').innerHTML =
           '<div style="font-size:12px;color:#f87171;">Could not load PCs: ' + err.message + '</div>';
-        console.error('PC load error:', err);
       }
     }
 
@@ -516,26 +566,59 @@
       const wrap    = document.getElementById('pc-rows-wrap');
       const rowSize = 10;
       let html = '';
+
       for (let i = 0; i < pcs.length; i += rowSize) {
         const row    = pcs.slice(i, i + rowSize);
         const startN = i + 1;
         const endN   = i + row.length;
         html += '<div class="pc-row-label">Row ' + String.fromCharCode(65 + i / rowSize) + ' — PCs ' + startN + '–' + endN + '</div>';
         html += '<div class="pc-grid">';
+
         row.forEach(pc => {
-          const taken = pc.status === 'Taken';
-          html += '<button type="button" class="pc-btn' + (taken ? ' pc-taken' : '') + '" '
+          const s = pc.status; // Available, Taken, Maintenance, Unavailable
+          let cls   = 'pc-btn';
+          let label = '';
+          let clickable = false;
+
+          if (s === 'Taken') {
+            cls += ' pc-taken';
+            label = 'Taken';
+          } else if (s === 'Maintenance') {
+            cls += ' pc-maintenance';
+            label = 'Maint.';
+          } else if (s === 'Unavailable') {
+            cls += ' pc-unavailable';
+            label = 'N/A';
+          } else {
+            // Available
+            clickable = true;
+          }
+
+          const onclick = clickable ? 'onclick="selectPC(' + pc.pc_no + ')"' : '';
+          const title   = s === 'Available' ? 'PC ' + pc.pc_no : pc.pc_no + ' — ' + s;
+
+          html += '<button type="button" class="' + cls + '" '
             + 'id="pcb-' + pc.pc_no + '" '
-            + (taken ? '' : 'onclick="selectPC(' + pc.pc_no + ')" ')
-            + 'title="' + (taken ? 'Taken' : 'PC ' + pc.pc_no) + '">'
-            + pc.pc_no + '</button>';
+            + onclick + ' '
+            + 'title="' + title + '">'
+            + pc.pc_no
+            + (label ? '<span class="pc-status-label">' + label + '</span>' : '')
+            + '</button>';
         });
+
         html += '</div>';
       }
+
       wrap.innerHTML = html;
-      const avail = pcs.filter(p => p.status === 'Available').length;
+
+      // Update stats
+      const avail  = pcs.filter(p => p.status === 'Available').length;
+      const taken  = pcs.filter(p => p.status === 'Taken').length;
+      const maint  = pcs.filter(p => p.status === 'Maintenance' || p.status === 'Unavailable').length;
+
       document.getElementById('stat-avail').textContent = avail;
-      document.getElementById('stat-taken').textContent = pcs.length - avail;
+      document.getElementById('stat-taken').textContent = taken;
+      document.getElementById('stat-maint').textContent = maint;
     }
 
     function selectPC(pcNo) {

@@ -218,6 +218,163 @@
       .labs-grid { grid-template-columns: 1fr; gap: 16px; }
       .lab-card  { padding: 16px; }
     }
+
+    /* View PCs button */
+    .btn-view-pcs {
+      width: 100%;
+      margin-top: 14px;
+      padding: 8px;
+      background: rgba(201,162,39,0.1);
+      border: 1px solid rgba(201,162,39,0.3);
+      border-radius: 8px;
+      color: var(--gold-light);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-view-pcs:hover {
+      background: rgba(201,162,39,0.2);
+    }
+
+    /* PC Modal */
+    .pc-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 16px;
+      overflow-y: auto;
+    }
+    .pc-modal-overlay.open { display: flex; }
+
+    .pc-modal {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 720px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+      overflow: hidden;
+    }
+
+    .pc-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 22px;
+      background: linear-gradient(135deg, var(--navy-dark), var(--purple));
+    }
+    .pc-modal-title { font-size: 15px; font-weight: 700; color: #fff; }
+    .pc-modal-close {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: #fff;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .pc-modal-close:hover { background: rgba(255,255,255,0.28); }
+
+    .pc-modal-body { padding: 20px 22px; }
+
+    /* PC legend */
+    .pc-legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .pc-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .pc-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* PC grid */
+    .pc-row-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 10px 0 5px;
+    }
+    .pc-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 5px;
+      margin-bottom: 4px;
+    }
+    .pc-cell {
+      aspect-ratio: 1;
+      border-radius: 6px;
+      border: 1.5px solid;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      gap: 2px;
+      line-height: 1.2;
+    }
+    .pc-cell.s-available {
+      border-color: rgba(34,197,94,0.4);
+      background: rgba(34,197,94,0.08);
+      color: #22c55e;
+    }
+    .pc-cell.s-maintenance {
+      border-color: rgba(245,158,11,0.4);
+      background: rgba(245,158,11,0.08);
+      color: #f59e0b;
+    }
+    .pc-cell.s-unavailable {
+      border-color: rgba(71,85,105,0.4);
+      background: rgba(71,85,105,0.1);
+      color: #64748b;
+    }
+    .pc-cell-label {
+      font-size: 7px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* Modal stats */
+    .pc-modal-stats {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--card-border);
+      flex-wrap: wrap;
+    }
+    .pc-modal-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      min-width: 60px;
+    }
+    .pc-modal-stat-val { font-size: 20px; font-weight: 800; }
+    .pc-modal-stat-label { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+
+    .pc-loading { text-align: center; padding: 24px; color: var(--muted); font-size: 13px; }
+
+    @media (max-width: 600px) {
+      .pc-grid { grid-template-columns: repeat(6, 1fr); }
+    }
   </style>
 </head>
 <body>
@@ -240,7 +397,7 @@
           <li><a href="/page/forums.html">Forums</a></li>
         </ul>
       </li>
-      <li><a href="/page/history.html" class="nav-link">History</a></li>
+      <li><a href="/page/history.html" class="nav-link active">History</a></li>
       <li><a href="/page/software.html" class="nav-link">Software</a></li>
       <li><a href="/page/lab-availability.html" class="nav-link active">Lab Availability</a></li>
       <li><a href="/page/reservation.html" class="nav-link">Reservations</a></li>
@@ -286,6 +443,44 @@
 
     <div id="availabilityContent" class="labs-grid">
       <div class="loading">Loading lab availability...</div>
+    </div>
+  </div>
+
+  <!-- ── PC MODAL ──────────────────────────────────────── -->
+  <div class="pc-modal-overlay" id="pcModal">
+    <div class="pc-modal">
+      <div class="pc-modal-header">
+        <span class="pc-modal-title" id="pcModalTitle">PC Availability</span>
+        <button class="pc-modal-close" onclick="closePcModal()">✕</button>
+      </div>
+      <div class="pc-modal-body">
+        <div class="pc-legend">
+          <div class="pc-legend-item"><div class="pc-legend-dot" style="background:#22c55e"></div> Available</div>
+          <div class="pc-legend-item"><div class="pc-legend-dot" style="background:#f59e0b"></div> Maintenance</div>
+          <div class="pc-legend-item"><div class="pc-legend-dot" style="background:#475569"></div> Unavailable</div>
+        </div>
+        <div id="pcGridWrap" class="pc-grid-wrap">
+          <div class="pc-loading">Loading PCs...</div>
+        </div>
+        <div class="pc-modal-stats" id="pcModalStats" style="display:none;">
+          <div class="pc-modal-stat">
+            <div class="pc-modal-stat-val" id="pcStatAvail" style="color:#22c55e;">—</div>
+            <div class="pc-modal-stat-label">Available</div>
+          </div>
+          <div class="pc-modal-stat">
+            <div class="pc-modal-stat-val" id="pcStatMaint" style="color:#f59e0b;">—</div>
+            <div class="pc-modal-stat-label">Maintenance</div>
+          </div>
+          <div class="pc-modal-stat">
+            <div class="pc-modal-stat-val" id="pcStatUnavail" style="color:#64748b;">—</div>
+            <div class="pc-modal-stat-label">Unavailable</div>
+          </div>
+          <div class="pc-modal-stat">
+            <div class="pc-modal-stat-val" id="pcStatTotal" style="color:var(--text);">—</div>
+            <div class="pc-modal-stat-label">Total PCs</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -369,6 +564,10 @@
             </div>
 
             <div class="last-updated">${formatTime(lab.last_updated)}</div>
+
+            <button class="btn-view-pcs" onclick="openPcModal('${lab.lab_name}')">
+              🖥️ View PC Availability
+            </button>
           </div>`;
       }).join('');
     }
@@ -446,15 +645,87 @@
       setupAuth(
         u.firstname || u.fullname.split(',')[0],
         (u.lastname || u.fullname).charAt(0).toUpperCase(),
-        'http://127.0.0.1:5000/api/logout', 'ccs_user'
+        '/api/logout', 'ccs_user'
       );
     } else if (storedAdmin) {
       const a = JSON.parse(storedAdmin);
       setupAuth(
         a.username, a.username.charAt(0).toUpperCase(),
-        'http://127.0.0.1:5000/api/admin/logout', 'ccs_admin'
+        '/api/admin/logout', 'ccs_admin'
       );
     }
+
+    // ── PC MODAL ─────────────────────────────────────────
+    async function openPcModal(labName) {
+      document.getElementById('pcModalTitle').textContent = '🖥️ ' + labName + ' — PC Status';
+      document.getElementById('pcModal').classList.add('open');
+      document.getElementById('pcModalStats').style.display = 'none';
+      document.getElementById('pcGridWrap').innerHTML = '<div class="pc-loading">Loading PCs...</div>';
+      await loadPcGrid(labName);
+    }
+
+    function closePcModal() {
+      document.getElementById('pcModal').classList.remove('open');
+    }
+
+    async function loadPcGrid(labName) {
+      try {
+        const res = await fetch('/api/admin/computers/' + encodeURIComponent(labName));
+        if (!res.ok) throw new Error();
+        const pcs = await res.json();
+        renderPcGrid(pcs);
+      } catch {
+        document.getElementById('pcGridWrap').innerHTML =
+          '<div class="pc-loading">Failed to load PC data.</div>';
+      }
+    }
+
+    function renderPcGrid(pcs) {
+      const wrap    = document.getElementById('pcGridWrap');
+      const rowSize = 10;
+      let html = '';
+
+      for (let i = 0; i < pcs.length; i += rowSize) {
+        const row    = pcs.slice(i, i + rowSize);
+        const startN = i + 1;
+        const endN   = i + row.length;
+        const rowLetter = String.fromCharCode(65 + i / rowSize);
+        html += '<div class="pc-row-label">Row ' + rowLetter + ' — PCs ' + startN + '–' + endN + '</div>';
+        html += '<div class="pc-grid">';
+        row.forEach(pc => {
+          const s = pc.status;
+          let cls   = 'pc-cell ';
+          let label = '';
+          if (s === 'Maintenance') { cls += 's-maintenance'; label = 'Maint.'; }
+          else if (s === 'Unavailable') { cls += 's-unavailable'; label = 'N/A'; }
+          else { cls += 's-available'; }
+
+          html += '<div class="' + cls + '" title="PC ' + pc.pc_no + ' — ' + s + '">'
+            + pc.pc_no
+            + (label ? '<span class="pc-cell-label">' + label + '</span>' : '')
+            + '</div>';
+        });
+        html += '</div>';
+      }
+
+      wrap.innerHTML = html;
+
+      // Stats
+      const avail  = pcs.filter(p => p.status === 'Available').length;
+      const maint  = pcs.filter(p => p.status === 'Maintenance').length;
+      const unavail = pcs.filter(p => p.status === 'Unavailable').length;
+
+      document.getElementById('pcStatAvail').textContent   = avail;
+      document.getElementById('pcStatMaint').textContent   = maint;
+      document.getElementById('pcStatUnavail').textContent = unavail;
+      document.getElementById('pcStatTotal').textContent   = pcs.length;
+      document.getElementById('pcModalStats').style.display = 'flex';
+    }
+
+    // Close modal on overlay click
+    document.getElementById('pcModal').addEventListener('click', function(e) {
+      if (e.target === this) closePcModal();
+    });
 
     // ── INIT ──────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', loadAvailability);
